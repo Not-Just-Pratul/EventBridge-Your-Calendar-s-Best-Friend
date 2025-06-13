@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { CalendarHeader } from '@/components/CalendarHeader';
 import { CalendarGrid } from '@/components/CalendarGrid';
-import { NavigationSidebar } from '@/components/NavigationSidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import { EventModal } from '@/components/EventModal';
 import { Button } from '@/components/ui/button';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { Plus } from 'lucide-react';
 
 const Index = () => {
@@ -19,11 +20,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="flex h-screen">
-        <NavigationSidebar currentView={currentView} onViewChange={setCurrentView} />
+    <SidebarProvider>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex w-full">
+        <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
         
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <SidebarInset className="flex flex-col overflow-hidden">
+          <div className="flex items-center gap-2 p-4 border-b">
+            <SidebarTrigger />
+            <h1 className="font-semibold">EventBridge Calendar</h1>
+          </div>
+          
           <CalendarHeader 
             currentView={currentView} 
             currentDate={currentDate}
@@ -38,7 +44,7 @@ const Index = () => {
               onTimeSlotClick={handleTimeSlotClick}
             />
           </div>
-        </div>
+        </SidebarInset>
       </div>
 
       <Button
@@ -57,7 +63,7 @@ const Index = () => {
         }}
         selectedTime={selectedTimeSlot}
       />
-    </div>
+    </SidebarProvider>
   );
 };
 
