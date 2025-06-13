@@ -19,15 +19,28 @@ const Index = () => {
     setIsEventModalOpen(true);
   };
 
+  const handleCreateEvent = () => {
+    setIsEventModalOpen(true);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex w-full">
-        <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
+        <AppSidebar 
+          currentView={currentView} 
+          onViewChange={setCurrentView}
+          onCreateEvent={handleCreateEvent}
+        />
         
         <SidebarInset className="flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2 p-4 border-b dark:border-gray-700">
-            <SidebarTrigger />
-            <h1 className="font-semibold dark:text-white">EventBridge Calendar</h1>
+          <div className="flex items-center gap-3 p-4 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200" />
+            <h1 className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              EventBridge Calendar
+            </h1>
+            <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">
+              Your Calendar's Best Friend
+            </div>
           </div>
           
           <CalendarHeader 
@@ -48,11 +61,11 @@ const Index = () => {
       </div>
 
       <Button
-        onClick={() => setIsEventModalOpen(true)}
-        className="fixed bottom-8 right-8 h-14 w-14 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+        onClick={handleCreateEvent}
+        className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-4 border-white dark:border-gray-800"
         size="icon"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-8 w-8" />
       </Button>
 
       <EventModal
