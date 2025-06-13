@@ -21,13 +21,13 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex w-full">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex w-full">
         <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
         
         <SidebarInset className="flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2 p-4 border-b">
+          <div className="flex items-center gap-2 p-4 border-b dark:border-gray-700">
             <SidebarTrigger />
-            <h1 className="font-semibold">EventBridge Calendar</h1>
+            <h1 className="font-semibold dark:text-white">EventBridge Calendar</h1>
           </div>
           
           <CalendarHeader 
