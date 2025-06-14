@@ -40,7 +40,7 @@ export const useEvents = () => {
     }
   };
 
-  const createEvent = async (eventData: Omit<Event, 'id' | 'user_id'>) => {
+  const createEvent = async (eventData: Omit<Event, 'id' | 'user_id' | 'created_at'>) => {
     try {
       const { data, error } = await supabase
         .from('events')
