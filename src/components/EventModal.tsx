@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, MapPin, Users, Sparkles, Palette } from 'lucide-react';
 import { format, addMinutes } from 'date-fns';
 import { useEvents, Event } from '@/hooks/useEvents';
+import { LocationPicker } from '@/components/LocationPicker';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   const [duration, setDuration] = useState('30');
   const [color, setColor] = useState('blue');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [locationTab, setLocationTab] = useState('manual');
   const { createEvent, updateEvent } = useEvents();
 
   useEffect(() => {
@@ -91,6 +93,11 @@ export const EventModal: React.FC<EventModalProps> = ({
     setEndTime('');
     setDuration('30');
     setColor('blue');
+    setLocationTab('manual');
+  };
+
+  const handleLocationSelect = (selectedLocation: { address: string; lat: number; lng: number }) => {
+    setLocation(selectedLocation.address);
   };
 
   const suggestions = [
@@ -128,7 +135,7 @@ export const EventModal: React.FC<EventModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Sparkles className="h-5 w-5 text-purple-600" />
@@ -244,16 +251,33 @@ export const EventModal: React.FC<EventModalProps> = ({
           <div>
             <Label htmlFor="location" className="text-sm font-medium flex items-center">
               <MapPin className="h-4 w-4 mr-1" />
-              Location (optional)
+              Location
             </Label>
-            <Input
-              id="location"
-              placeholder="Where is this happening?"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="mt-2 border-2 focus:border-purple-300 transition-colors duration-200"
-              disabled={isProcessing}
-            />
+            
+            <Tabs value={locationTab} onValueChange={setLocationTab} className="mt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                <TabsTrigger value="map">Map Picker</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="manual" className="mt-4">
+                <Input
+                  id="location"
+                  placeholder="Where is this happening?"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="border-2 focus:border-purple-300 transition-colors duration-200"
+                  disabled={isProcessing}
+                />
+              </TabsContent>
+              
+              <TabsContent value="map" className="mt-4">
+                <LocationPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={location}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div>
