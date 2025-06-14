@@ -7,19 +7,31 @@ import { EventModal } from '@/components/EventModal';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { Plus } from 'lucide-react';
+import { useEvents } from '@/hooks/useEvents';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'day' | 'week' | 'month'>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<Date | null>(null);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const { events } = useEvents();
 
   const handleTimeSlotClick = (date: Date) => {
     setSelectedTimeSlot(date);
+    setEditingEvent(null);
+    setIsEventModalOpen(true);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEditingEvent(event);
+    setSelectedTimeSlot(null);
     setIsEventModalOpen(true);
   };
 
   const handleCreateEvent = () => {
+    setEditingEvent(null);
+    setSelectedTimeSlot(null);
     setIsEventModalOpen(true);
   };
 
@@ -55,6 +67,8 @@ const Index = () => {
               view={currentView}
               currentDate={currentDate}
               onTimeSlotClick={handleTimeSlotClick}
+              onEditEvent={handleEditEvent}
+              events={events}
             />
           </div>
         </SidebarInset>
@@ -73,8 +87,10 @@ const Index = () => {
         onClose={() => {
           setIsEventModalOpen(false);
           setSelectedTimeSlot(null);
+          setEditingEvent(null);
         }}
         selectedTime={selectedTimeSlot}
+        editEvent={editingEvent}
       />
     </SidebarProvider>
   );
