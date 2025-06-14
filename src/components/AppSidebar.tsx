@@ -26,13 +26,15 @@ import {
   LogOut,
   Moon,
   Sun,
-  User
+  User,
+  List
 } from 'lucide-react';
 import { LifeBalanceModal } from '@/components/LifeBalanceModal';
 import { QuickActionsModal } from '@/components/QuickActionsModal';
 import { SettingsModal } from '@/components/SettingsModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AppSidebarProps {
   currentView: 'day' | 'week' | 'month';
@@ -46,11 +48,28 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const viewItems = [
     { title: 'Day View', icon: Clock, view: 'day' as const },
     { title: 'Week View', icon: CalendarDays, view: 'week' as const },
     { title: 'Month View', icon: CalendarIcon, view: 'month' as const },
+  ];
+
+  const navigationItems = [
+    { 
+      title: 'Calendar View', 
+      icon: Calendar, 
+      path: '/calendar',
+      action: () => navigate('/calendar')
+    },
+    { 
+      title: 'All Events', 
+      icon: List, 
+      path: '/events',
+      action: () => navigate('/events')
+    },
   ];
 
   const quickItems = [
@@ -106,23 +125,23 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
         <SidebarContent className="p-4">
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
-              Calendar Views
+              Navigation
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {viewItems.map((item) => (
-                  <SidebarMenuItem key={item.view}>
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      onClick={() => onViewChange(item.view)}
+                      onClick={item.action}
                       className={`w-full transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-950 ${
-                        currentView === item.view 
+                        location.pathname === item.path
                           ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-md' 
                           : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.title}
-                      {currentView === item.view && (
+                      {location.pathname === item.path && (
                         <Badge variant="secondary" className="ml-auto text-xs bg-purple-200 dark:bg-purple-800">
                           Active
                         </Badge>
@@ -133,6 +152,38 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          {location.pathname === '/calendar' && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+                Calendar Views
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {viewItems.map((item) => (
+                    <SidebarMenuItem key={item.view}>
+                      <SidebarMenuButton
+                        onClick={() => onViewChange(item.view)}
+                        className={`w-full transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-950 ${
+                          currentView === item.view 
+                            ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-md' 
+                            : 'text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        <item.icon className="mr-3 h-5 w-5" />
+                        {item.title}
+                        {currentView === item.view && (
+                          <Badge variant="secondary" className="ml-auto text-xs bg-purple-200 dark:bg-purple-800">
+                            Active
+                          </Badge>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
 
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
