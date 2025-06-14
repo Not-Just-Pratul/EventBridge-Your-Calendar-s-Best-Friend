@@ -1,0 +1,199 @@
+
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+
+const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate('/calendar');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast({
+          title: "Welcome back!",
+          description: "You've been successfully signed in.",
+        });
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/calendar`,
+            data: {
+              full_name: fullName,
+            }
+          }
+        });
+        if (error) throw error;
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      }
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="mb-6 text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+          
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              EventBridge
+            </h1>
+          </div>
+          
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            {isLogin ? 'Welcome back' : 'Create your account'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            {isLogin ? 'Sign in to your account' : 'Get started with EventBridge'}
+          </p>
+        </div>
+
+        <Card className="p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <form onSubmit={handleAuth} className="space-y-6">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span>Full Name</span>
+                </Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required={!isLogin}
+                  className="border-2 focus:border-purple-300"
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center space-x-2">
+                <Mail className="h-4 w-4" />
+                <span>Email</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="border-2 focus:border-purple-300"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password" className="flex items-center space-x-2">
+                <Lock className="h-4 w-4" />
+                <span>Password</span>
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="border-2 focus:border-purple-300"
+              />
+            </div>
+
+            {error && (
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+                <AlertDescription className="text-red-800 dark:text-red-200">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
+                </div>
+              ) : (
+                isLogin ? 'Sign In' : 'Create Account'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+            >
+              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            </button>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Auth;

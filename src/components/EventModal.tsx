@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,13 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, MapPin, Users, Sparkles, Palette } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addMinutes } from 'date-fns';
+import { useEvents, Event } from '@/hooks/useEvents';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedTime?: Date | null;
-  editEvent?: any;
+  editEvent?: Event | null;
 }
 
 export const EventModal: React.FC<EventModalProps> = ({
@@ -23,31 +24,78 @@ export const EventModal: React.FC<EventModalProps> = ({
   selectedTime,
   editEvent,
 }) => {
-  const [title, setTitle] = useState(editEvent?.title || '');
-  const [description, setDescription] = useState(editEvent?.description || '');
-  const [duration, setDuration] = useState(editEvent?.duration || '30');
-  const [color, setColor] = useState(editEvent?.color || 'blue');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [duration, setDuration] = useState('30');
+  const [color, setColor] = useState('blue');
   const [isProcessing, setIsProcessing] = useState(false);
+  const { createEvent, updateEvent } = useEvents();
+
+  useEffect(() => {
+    if (editEvent) {
+      setTitle(editEvent.title);
+      setDescription(editEvent.description || '');
+      setLocation(editEvent.location || '');
+      setStartTime(format(new Date(editEvent.start_time), "yyyy-MM-dd'T'HH:mm"));
+      setEndTime(format(new Date(editEvent.end_time), "yyyy-MM-dd'T'HH:mm"));
+      setColor(editEvent.color);
+    } else if (selectedTime) {
+      const start = selectedTime;
+      const end = addMinutes(start, parseInt(duration));
+      setTitle('');
+      setDescription('');
+      setLocation('');
+      setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
+      setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
+      setColor('blue');
+    }
+  }, [editEvent, selectedTime, duration]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    console.log('Creating event:', { title, description, selectedTime, duration, color });
-    setIsProcessing(false);
-    onClose();
+
+    try {
+      const eventData = {
+        title,
+        description,
+        location,
+        start_time: new Date(startTime).toISOString(),
+        end_time: new Date(endTime).toISOString(),
+        color,
+      };
+
+      if (editEvent) {
+        await updateEvent(editEvent.id, eventData);
+      } else {
+        await createEvent(eventData);
+      }
+
+      onClose();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving event:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const resetForm = () => {
     setTitle('');
     setDescription('');
+    setLocation('');
+    setStartTime('');
+    setEndTime('');
     setDuration('30');
     setColor('blue');
   };
 
   const suggestions = [
     "Team standup meeting",
-    "Coffee chat with client",
+    "Coffee chat with client", 
     "Design review session",
     "Focus time for coding",
     "Lunch break 🍜",
@@ -69,9 +117,18 @@ export const EventModal: React.FC<EventModalProps> = ({
     '15', '30', '45', '60', '90', '120'
   ];
 
+  const handleDurationChange = (newDuration: string) => {
+    setDuration(newDuration);
+    if (startTime) {
+      const start = new Date(startTime);
+      const end = addMinutes(start, parseInt(newDuration));
+      setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Sparkles className="h-5 w-5 text-purple-600" />
@@ -82,49 +139,72 @@ export const EventModal: React.FC<EventModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Label htmlFor="title" className="text-sm font-medium">
-              What's happening? ✨
+              Event Title ✨
             </Label>
             <Input
               id="title"
-              placeholder="Try: 'Lunch with Sarah tomorrow at 1 PM'"
+              placeholder="What's happening?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="mt-2 border-2 focus:border-purple-300 transition-colors duration-200"
               disabled={isProcessing}
+              required
             />
-            <div className="mt-3 flex flex-wrap gap-2">
-              {suggestions.map((suggestion, index) => (
-                <Badge
-                  key={index}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-950 transition-colors text-xs border-purple-200 dark:border-purple-700"
-                  onClick={() => setTitle(suggestion)}
-                >
-                  {suggestion}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {selectedTime && (
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center space-x-4 text-sm text-purple-800 dark:text-purple-200">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-medium">{format(selectedTime, 'EEEE, MMMM d')}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4" />
-                  <span className="font-medium">{format(selectedTime, 'h:mm a')}</span>
-                </div>
+            {!editEvent && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suggestions.map((suggestion, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-950 transition-colors text-xs border-purple-200 dark:border-purple-700"
+                    onClick={() => setTitle(suggestion)}
+                  >
+                    {suggestion}
+                  </Badge>
+                ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="duration" className="text-sm font-medium">Duration</Label>
-              <Select value={duration} onValueChange={setDuration}>
+              <Label htmlFor="startTime" className="text-sm font-medium">Start Time</Label>
+              <Input
+                id="startTime"
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  if (e.target.value) {
+                    const start = new Date(e.target.value);
+                    const end = addMinutes(start, parseInt(duration));
+                    setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
+                  }
+                }}
+                className="mt-2"
+                disabled={isProcessing}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="endTime" className="text-sm font-medium">End Time</Label>
+              <Input
+                id="endTime"
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="mt-2"
+                disabled={isProcessing}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="duration" className="text-sm font-medium">Quick Duration</Label>
+              <Select value={duration} onValueChange={handleDurationChange}>
                 <SelectTrigger className="mt-2">
                   <SelectValue />
                 </SelectTrigger>
@@ -162,39 +242,33 @@ export const EventModal: React.FC<EventModalProps> = ({
           </div>
 
           <div>
+            <Label htmlFor="location" className="text-sm font-medium flex items-center">
+              <MapPin className="h-4 w-4 mr-1" />
+              Location (optional)
+            </Label>
+            <Input
+              id="location"
+              placeholder="Where is this happening?"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="mt-2 border-2 focus:border-purple-300 transition-colors duration-200"
+              disabled={isProcessing}
+            />
+          </div>
+
+          <div>
             <Label htmlFor="description" className="text-sm font-medium">
-              Add some details (optional)
+              Description (optional)
             </Label>
             <Textarea
               id="description"
-              placeholder="Meeting agenda, location, or any special notes..."
+              placeholder="Add some details about this event..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="mt-2 resize-none border-2 focus:border-purple-300 transition-colors duration-200"
               rows={3}
               disabled={isProcessing}
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="space-x-2 border-2 hover:border-purple-300 transition-colors duration-200"
-              disabled={isProcessing}
-            >
-              <MapPin className="h-4 w-4" />
-              <span>Add Location</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="space-x-2 border-2 hover:border-purple-300 transition-colors duration-200"
-              disabled={isProcessing}
-            >
-              <Users className="h-4 w-4" />
-              <span>Invite Others</span>
-            </Button>
           </div>
 
           <div className="flex space-x-3 pt-4">
@@ -227,7 +301,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         {isProcessing && (
           <div className="text-center py-2">
             <div className="text-sm text-purple-600 dark:text-purple-400 animate-pulse">
-              🤖 AI is working its magic...
+              🤖 Working on it...
             </div>
           </div>
         )}
