@@ -41,7 +41,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
         if (!mapRef.current) return;
 
-        const mapInstance = new google.maps.Map(mapRef.current, {
+        const mapInstance = new window.google.maps.Map(mapRef.current, {
           center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
           zoom: 13,
           mapTypeControl: false,
@@ -100,7 +100,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     }
 
     // Create new marker
-    const newMarker = new google.maps.Marker({
+    const newMarker = new window.google.maps.Marker({
       position: location,
       map: mapInstance,
       draggable: true
@@ -109,7 +109,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     setMarker(newMarker);
 
     // Reverse geocode to get address
-    const geocoder = new google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ location: location }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
         const address = results[0].formatted_address;
@@ -143,7 +143,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   const searchLocation = () => {
     if (!map || !searchInput.trim()) return;
 
-    const geocoder = new google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address: searchInput }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
         const location = results[0].geometry.location;
