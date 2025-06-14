@@ -12,6 +12,7 @@ export interface Event {
   location?: string;
   color: string;
   user_id: string;
+  created_at: string;
 }
 
 export const useEvents = () => {
