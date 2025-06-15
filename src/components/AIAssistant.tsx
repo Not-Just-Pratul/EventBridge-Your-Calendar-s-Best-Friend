@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Send, Clock, Zap, Heart, User, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -64,25 +65,19 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setIsLoading(true);
 
     try {
-      // Call our AI assistant edge function
-      const response = await fetch('/api/ai-assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Call our AI assistant edge function using Supabase
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: {
           message: messageToSend,
           lifeBalanceData,
           context: 'life_balance'
-        }),
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
+      if (error) {
+        throw new Error(error.message || 'Failed to get AI response');
       }
 
-      const data = await response.json();
-      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
