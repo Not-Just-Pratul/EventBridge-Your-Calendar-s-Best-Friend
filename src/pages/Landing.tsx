@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Users, Zap, Shield, Sparkles, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, Users, Zap, Shield, Sparkles, ArrowRight, BarChart3, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Landing = () => {
@@ -16,9 +16,14 @@ const Landing = () => {
       description: 'AI-powered calendar that learns your preferences and optimizes your time'
     },
     {
-      icon: Clock,
-      title: 'Time Analytics',
+      icon: BarChart3,
+      title: 'Analytics Dashboard',
       description: 'Track your productivity patterns and get insights on your time usage'
+    },
+    {
+      icon: Target,
+      title: 'Goal Tracking',
+      description: 'Set and monitor your objectives with progress tracking and insights'
     },
     {
       icon: Users,
@@ -34,30 +39,25 @@ const Landing = () => {
       icon: Shield,
       title: 'Secure & Private',
       description: 'Your data is encrypted and protected with enterprise-grade security'
-    },
-    {
-      icon: Sparkles,
-      title: 'Life Balance',
-      description: 'Monitor work-life balance with intelligent wellness tracking'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
       <header className="container mx-auto px-6 py-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-white" />
+            <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-white dark:text-black" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-black dark:text-white">
               EventBridge
             </h1>
           </div>
           <Button
             onClick={() => navigate('/auth')}
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+            className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
           >
             Get Started
             <ArrowRight className="ml-2 h-4 w-4" />
@@ -70,7 +70,7 @@ const Landing = () => {
         <Badge variant="secondary" className="mb-6 animate-pulse">
           ✨ The Future of Calendar Management
         </Badge>
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 text-black dark:text-white">
           Your Calendar's
           <br />
           Best Friend
@@ -83,7 +83,7 @@ const Landing = () => {
           <Button
             size="lg"
             onClick={() => navigate('/auth')}
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-lg px-8 py-4 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+            className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 text-lg px-8 py-4 rounded-xl"
           >
             Start Free Trial
             <Sparkles className="ml-2 h-5 w-5" />
@@ -92,7 +92,7 @@ const Landing = () => {
             size="lg"
             variant="outline"
             onClick={() => navigate('/features')}
-            className="text-lg px-8 py-4 rounded-xl border-2 hover:border-purple-300 transition-all duration-300"
+            className="text-lg px-8 py-4 rounded-xl border-2 border-black dark:border-white text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-900"
           >
             View Features
           </Button>
@@ -102,7 +102,7 @@ const Landing = () => {
       {/* Features Grid */}
       <section className="container mx-auto px-6 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+          <h2 className="text-4xl font-bold mb-4 text-black dark:text-white">
             Everything you need to master your time
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -114,12 +114,12 @@ const Landing = () => {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="p-8 border-2 border-gray-100 dark:border-gray-800 hover:border-purple-200 dark:hover:border-purple-700 transition-all duration-300 transform hover:scale-105 hover:shadow-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+              className="p-8 border-2 border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white transition-all duration-300 transform hover:scale-105 hover:shadow-xl bg-white dark:bg-black"
             >
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 rounded-xl flex items-center justify-center mb-6">
-                <feature.icon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-900 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="h-6 w-6 text-black dark:text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">
+              <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">
                 {feature.title}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -130,9 +130,62 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Product Showcase */}
+      <section className="container mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4 text-black dark:text-white">
+            Complete Productivity Suite
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            From calendar management to team collaboration, we've got you covered.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="p-6 text-center border-2 border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white transition-all duration-300">
+            <Calendar className="h-8 w-8 text-black dark:text-white mx-auto mb-4" />
+            <h3 className="font-semibold text-black dark:text-white mb-2">Smart Calendar</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Intelligent scheduling with AI</p>
+          </Card>
+          <Card className="p-6 text-center border-2 border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white transition-all duration-300">
+            <BarChart3 className="h-8 w-8 text-black dark:text-white mx-auto mb-4" />
+            <h3 className="font-semibold text-black dark:text-white mb-2">Analytics</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Productivity insights & reports</p>
+          </Card>
+          <Card className="p-6 text-center border-2 border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white transition-all duration-300">
+            <Target className="h-8 w-8 text-black dark:text-white mx-auto mb-4" />
+            <h3 className="font-semibold text-black dark:text-white mb-2">Goal Tracking</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Set & achieve your objectives</p>
+          </Card>
+          <Card className="p-6 text-center border-2 border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white transition-all duration-300">
+            <Users className="h-8 w-8 text-black dark:text-white mx-auto mb-4" />
+            <h3 className="font-semibold text-black dark:text-white mb-2">Team Collaboration</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Work together seamlessly</p>
+          </Card>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="container mx-auto px-6 py-20">
+        <div className="grid md:grid-cols-3 gap-8 text-center">
+          <div>
+            <h3 className="text-4xl font-bold text-black dark:text-white mb-2">50K+</h3>
+            <p className="text-gray-600 dark:text-gray-300">Active Users</p>
+          </div>
+          <div>
+            <h3 className="text-4xl font-bold text-black dark:text-white mb-2">99.9%</h3>
+            <p className="text-gray-600 dark:text-gray-300">Uptime</p>
+          </div>
+          <div>
+            <h3 className="text-4xl font-bold text-black dark:text-white mb-2">2M+</h3>
+            <p className="text-gray-600 dark:text-gray-300">Events Managed</p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="container mx-auto px-6 py-20">
-        <Card className="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-12 text-center border-0 shadow-2xl">
+        <Card className="bg-black dark:bg-white text-white dark:text-black p-12 text-center border-0">
           <h2 className="text-4xl font-bold mb-6">
             Ready to transform your productivity?
           </h2>
@@ -142,7 +195,7 @@ const Landing = () => {
           <Button
             size="lg"
             onClick={() => navigate('/auth')}
-            className="bg-white text-purple-600 hover:bg-gray-50 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 text-lg px-8 py-4 rounded-xl"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -153,7 +206,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-gray-800 py-12">
         <div className="container mx-auto px-6 text-center text-gray-600 dark:text-gray-400">
-          <p>&copy; 2024 EventBridge. All rights reserved.</p>
+          <p>&copy; 2025 EventBridge. All rights reserved.</p>
         </div>
       </footer>
     </div>

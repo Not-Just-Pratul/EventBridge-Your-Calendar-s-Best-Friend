@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { Plus } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'day' | 'week' | 'month'>('week');
@@ -16,6 +19,29 @@ const Index = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<Date | null>(null);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const { events } = useEvents();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleTimeSlotClick = (date: Date) => {
     setSelectedTimeSlot(date);
@@ -37,7 +63,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex w-full">
+      <div className="min-h-screen bg-white dark:bg-black flex w-full">
         <AppSidebar 
           currentView={currentView} 
           onViewChange={setCurrentView}
@@ -45,13 +71,13 @@ const Index = () => {
         />
         
         <SidebarInset className="flex flex-col overflow-hidden">
-          <div className="flex items-center gap-3 p-4 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200" />
-            <h1 className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+            <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors duration-200" />
+            <h1 className="font-bold text-xl text-black dark:text-white">
               EventBridge Calendar
             </h1>
             <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">
-              Your Calendar's Best Friend
+              Welcome back, {user.email}
             </div>
           </div>
           
@@ -76,7 +102,7 @@ const Index = () => {
 
       <Button
         onClick={handleCreateEvent}
-        className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-4 border-white dark:border-gray-800"
+        className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50"
         size="icon"
       >
         <Plus className="h-8 w-8" />

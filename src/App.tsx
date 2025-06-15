@@ -10,6 +10,9 @@ import Features from "./pages/Features";
 import Auth from "./pages/Auth";
 import Calendar from "./pages/Calendar";
 import Events from "./pages/Events";
+import Analytics from "./pages/Analytics";
+import Goals from "./pages/Goals";
+import Teams from "./pages/Teams";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/teams" element={<Teams />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
