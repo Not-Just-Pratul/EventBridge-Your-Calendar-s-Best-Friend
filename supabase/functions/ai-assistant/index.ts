@@ -14,6 +14,13 @@ interface LifeBalanceData {
   stressLevel: number;
   focusTime: number;
   wellnessScore: number;
+  workHours?: number;
+  personalHours?: number;
+  healthHours?: number;
+  socialHours?: number;
+  freeTime?: number;
+  averageEventDuration?: number;
+  upcomingDeadlines?: number;
 }
 
 serve(async (req) => {
@@ -28,29 +35,63 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Build context for the AI based on life balance data
-    let contextPrompt = `You are a wellness and productivity AI assistant integrated with a calendar app. You help users optimize their work-life balance, schedule breaks, and manage focus sessions.`;
+    // Enhanced context for calendar-synced AI
+    let contextPrompt = `You are an advanced wellness and productivity AI assistant integrated with a calendar app. You help users optimize their work-life balance using real-time calendar data analysis.`;
 
     if (lifeBalanceData) {
       const data = lifeBalanceData as LifeBalanceData;
-      contextPrompt += `\n\nCurrent user metrics:
+      contextPrompt += `\n\nReal-time Calendar Metrics:
 - Work-Life Balance: ${data.workLifeBalance}%
 - Stress Level: ${data.stressLevel}%
 - Focus Time: ${data.focusTime}%
-- Wellness Score: ${data.wellnessScore}%
+- Wellness Score: ${data.wellnessScore}%`;
 
-Based on these metrics, provide personalized advice. If stress is high (>70%), strongly recommend breaks. If focus time is low (<50%), suggest focus sessions. If wellness score is high (>80%), congratulate them.`;
+      if (data.workHours !== undefined) {
+        contextPrompt += `\n\nWeekly Time Breakdown:
+- Work Hours: ${data.workHours}h
+- Personal Hours: ${data.personalHours}h
+- Health/Wellness Hours: ${data.healthHours}h
+- Social Hours: ${data.socialHours}h
+- Free Time Available: ${data.freeTime}h
+- Average Event Duration: ${data.averageEventDuration}h
+- Upcoming Deadlines: ${data.upcomingDeadlines}`;
+      }
+
+      // Context-specific analysis
+      if (context === 'calendar_analysis') {
+        contextPrompt += `\n\nProvide detailed analysis of calendar patterns, productivity insights, and specific recommendations for time management improvement.`;
+      } else if (context === 'schedule_optimization') {
+        contextPrompt += `\n\nFocus on providing concrete scheduling recommendations with specific time blocks and optimization strategies.`;
+      } else if (context === 'ideal_schedule_generation') {
+        contextPrompt += `\n\nCreate a comprehensive daily schedule template with specific times and durations for optimal wellness and productivity.`;
+      }
+
+      // Personalized recommendations based on metrics
+      if (data.stressLevel > 70) {
+        contextPrompt += `\n\nPRIORITY: High stress detected (${data.stressLevel}%). Strongly recommend immediate stress reduction strategies and schedule breaks.`;
+      }
+      if (data.focusTime < 50) {
+        contextPrompt += `\n\nPRIORITY: Low focus time (${data.focusTime}%). Suggest focus sessions and deep work time blocks.`;
+      }
+      if (data.wellnessScore > 80) {
+        contextPrompt += `\n\nEXCELLENT: High wellness score (${data.wellnessScore}%). Congratulate them and suggest maintaining current habits.`;
+      }
+      if (data.freeTime && data.freeTime < 10) {
+        contextPrompt += `\n\nCONCERN: Very limited free time (${data.freeTime}h). Recommend schedule optimization and boundary setting.`;
+      }
     }
 
     contextPrompt += `\n\nYou can suggest actions like:
-- "schedule_break" - when user needs a break
-- "focus_session" - when user needs to focus
-- General wellness advice
-- Productivity tips
+- "schedule_break" - when user needs immediate stress relief
+- "focus_session" - when user needs deep work time
+- "schedule_optimization" - for improving time management
+- Calendar analysis and pattern recognition
+- Wellness coaching and productivity tips
+- Specific time recommendations with exact hours
 
-Keep responses concise, helpful, and encouraging. Always consider the user's current metrics when giving advice.`;
+Keep responses practical, actionable, and encouraging. Always consider the user's real calendar data when giving advice. Provide specific time suggestions when relevant (e.g., "Schedule a 15-minute break at 2:30 PM").`;
 
-    // Use the correct Gemini API endpoint
+    // Enhanced request for better AI responses
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
@@ -66,7 +107,7 @@ Keep responses concise, helpful, and encouraging. Always consider the user's cur
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048, // Increased for more detailed responses
         }
       }),
     });
@@ -80,24 +121,26 @@ Keep responses concise, helpful, and encouraging. Always consider the user's cur
     const data = await response.json();
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not generate a response.';
 
-    // Analyze response for action suggestions
+    // Enhanced action analysis for calendar-synced features
     let action = null;
     let suggestions = [];
 
-    if (aiResponse.toLowerCase().includes('break') || aiResponse.toLowerCase().includes('rest')) {
+    if (aiResponse.toLowerCase().includes('break') || aiResponse.toLowerCase().includes('rest') || aiResponse.toLowerCase().includes('stress')) {
       action = 'schedule_break';
-      suggestions.push('Schedule a 15-minute break', 'Take a walk', 'Do breathing exercises');
-    } else if (aiResponse.toLowerCase().includes('focus') || aiResponse.toLowerCase().includes('concentrate')) {
+      suggestions.push('Schedule 15-min wellness break', 'Take a mindful walk', 'Practice breathing exercises', 'Stretch break');
+    } else if (aiResponse.toLowerCase().includes('focus') || aiResponse.toLowerCase().includes('concentrate') || aiResponse.toLowerCase().includes('deep work')) {
       action = 'focus_session';
-      suggestions.push('Start 25-minute focus session', 'Set up distraction-free zone', 'Use Pomodoro technique');
+      suggestions.push('Start 25-min focus session', 'Create distraction-free zone', 'Use Pomodoro technique', 'Block calendar for deep work');
+    } else if (context === 'calendar_analysis' || aiResponse.toLowerCase().includes('schedule') || aiResponse.toLowerCase().includes('optimize')) {
+      suggestions = ['Optimize next week schedule', 'Analyze time patterns', 'Generate ideal schedule', 'Schedule wellness time'];
     } else {
-      suggestions = ['Tell me more about my wellness', 'How can I be more productive?', 'Suggest a daily routine'];
+      suggestions = ['Analyze my calendar patterns', 'How can I reduce stress?', 'Optimize my schedule', 'Generate ideal routine'];
     }
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
       action,
-      suggestions: suggestions.slice(0, 3) // Limit to 3 suggestions
+      suggestions: suggestions.slice(0, 4) // Increased to 4 suggestions
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

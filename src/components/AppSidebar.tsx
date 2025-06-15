@@ -37,13 +37,9 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
 
   const handleLogout = async () => {
     try {
-      // You would typically call your auth service's logout function here
-      // For example:
-      // await auth.signOut();
-      navigate('/auth'); // Redirect to the login page after logout
+      navigate('/auth');
     } catch (error) {
       console.error("Logout failed:", error);
-      // Handle logout error (e.g., display an error message)
     }
   };
 
