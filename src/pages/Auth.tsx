@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { Calendar, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -21,18 +21,7 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/calendar');
-      }
-    };
-    
-    checkAuth();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event, session);
       if (session) {
         navigate('/calendar');
       }
@@ -48,20 +37,17 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        
         if (error) throw error;
-        
-        console.log('Sign in successful:', data);
         toast({
           title: "Welcome back!",
           description: "You've been successfully signed in.",
         });
       } else {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -71,17 +57,13 @@ const Auth = () => {
             }
           }
         });
-        
         if (error) throw error;
-        
-        console.log('Sign up result:', data);
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
       setError(error.message);
       toast({
         variant: "destructive",
@@ -94,40 +76,40 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-6 text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900"
+            className="mb-6 text-gray-600 hover:text-gray-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-premium-lg">
-              <Calendar className="h-6 w-6 text-white dark:text-black" />
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-black dark:text-white">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               EventBridge
             </h1>
           </div>
           
-          <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-gray-300">
             {isLogin ? 'Sign in to your account' : 'Get started with EventBridge'}
           </p>
         </div>
 
-        <Card className="p-8 shadow-premium-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+        <Card className="p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           <form onSubmit={handleAuth} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center space-x-2 text-black dark:text-white font-medium">
+                <Label htmlFor="fullName" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
                   <span>Full Name</span>
                 </Label>
@@ -138,13 +120,13 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
-                  className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
+                  className="border-2 focus:border-purple-300"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-2 text-black dark:text-white font-medium">
+              <Label htmlFor="email" className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
                 <span>Email</span>
               </Label>
@@ -155,12 +137,12 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
+                className="border-2 focus:border-purple-300"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center space-x-2 text-black dark:text-white font-medium">
+              <Label htmlFor="password" className="flex items-center space-x-2">
                 <Lock className="h-4 w-4" />
                 <span>Password</span>
               </Label>
@@ -171,14 +153,13 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
-                className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
+                className="border-2 focus:border-purple-300"
               />
             </div>
 
             {error && (
-              <Alert className="border-gray-200 bg-gray-50 dark:bg-gray-950 dark:border-gray-800">
-                <AlertDescription className="text-black dark:text-white">
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+                <AlertDescription className="text-red-800 dark:text-red-200">
                   {error}
                 </AlertDescription>
               </Alert>
@@ -186,12 +167,12 @@ const Auth = () => {
 
             <Button
               type="submit"
-              className="w-full bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black py-3 rounded-xl shadow-premium-lg hover:shadow-premium-xl transition-all duration-300 font-medium"
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
                 </div>
               ) : (
@@ -204,7 +185,7 @@ const Auth = () => {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white font-medium transition-colors"
+              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
