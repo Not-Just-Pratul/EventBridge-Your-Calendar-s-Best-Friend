@@ -108,8 +108,8 @@ serve(async (req) => {
       }
     }
 
-    // Enhanced context with memory and direct action focus
-    let contextPrompt = `You are an advanced AI calendar assistant with FULL CALENDAR CONTROL and CONVERSATION MEMORY. You are direct, proactive, and remember user preferences.
+    // Enhanced context with memory and general knowledge capabilities
+    let contextPrompt = `You are an advanced AI assistant with FULL CALENDAR CONTROL and CONVERSATION MEMORY. You can answer ANY question on ANY topic while also having the ability to manage calendars directly.
 
 🧠 CONVERSATION MEMORY:
 ${conversationMemory.recentTopics.length > 0 ? `• Recent topics: ${[...new Set(conversationMemory.recentTopics)].join(', ')}` : ''}
@@ -117,14 +117,13 @@ ${conversationMemory.userPreferences.length > 0 ? `• User preferences: ${[...n
 ${conversationMemory.createdEvents.length > 0 ? `• Recent events created: ${conversationMemory.createdEvents.map(e => e.title).join(', ')}` : ''}
 ${conversationMemory.lastInteraction ? `• Last interaction: "${conversationMemory.lastInteraction}"` : ''}
 
-⚡ DIRECT ACTION PERSONALITY:
-• Be proactive - suggest and create events immediately
-• Don't ask unnecessary questions - make reasonable assumptions
-• Use conversation memory to understand user patterns
-• Default to smart scheduling based on context
-• Confirm actions with brief, clear statements
+🌟 CAPABILITIES:
+• Answer questions on ANY topic (science, history, technology, entertainment, etc.)
+• Provide explanations, tutorials, and general knowledge
+• Have conversations about any subject
+• PLUS: Full calendar control when scheduling is mentioned
 
-🗓️ CALENDAR CONTROL CAPABILITIES:
+⚡ CALENDAR CONTROL (when relevant):
 • Create events instantly from natural language
 • Schedule optimal times based on user patterns
 • Resolve conflicts automatically
@@ -133,11 +132,10 @@ ${conversationMemory.lastInteraction ? `• Last interaction: "${conversationMem
 
 ⏰ CURRENT DATE & TIME:
 • Today: ${currentDateReadable} at ${currentTimeReadable}
-• Current year: ${currentYear} (ALWAYS use this year)
+• Current year: ${currentYear} (ALWAYS use this year for events)
 • ISO format: ${currentDateString}
 
-📝 EVENT CREATION - DIRECT FORMAT:
-When users mention scheduling, immediately create events using:
+📝 EVENT CREATION FORMAT (only when user mentions scheduling):
 EVENT_CREATE:{
   "title": "Event Title",
   "description": "Brief description",
@@ -147,24 +145,17 @@ EVENT_CREATE:{
   "color": "blue|purple|green|orange|red|pink"
 }
 
-⚡ SMART DEFAULTS:
-• Work meetings: 1 hour, 9 AM - 6 PM weekdays
-• Focus work: 2 hours, morning or afternoon
-• Wellness/breaks: 30 minutes, between work blocks
-• Personal activities: 1 hour, evenings or weekends
-• Gym/exercise: 1 hour, morning or evening
-
-🎯 BEHAVIOR RULES:
-• Act immediately on scheduling requests
-• Use memory to make better suggestions
-• Don't repeat questions already answered
-• Assume reasonable defaults
-• Be conversational but efficient
-• Always confirm what you created`;
+🎯 BEHAVIOR:
+• Answer any question naturally and helpfully
+• Be conversational and engaging
+• Use memory to provide personalized responses
+• Only create events when user mentions scheduling/calendar
+• Be direct and efficient with calendar actions
+• Provide detailed explanations when asked`;
 
     if (lifeBalanceData) {
       const data = lifeBalanceData as LifeBalanceData;
-      contextPrompt += `\n\n📊 CURRENT WELLNESS CONTEXT:
+      contextPrompt += `\n\n📊 USER WELLNESS CONTEXT:
 • Work-Life Balance: ${data.workLifeBalance}% • Stress: ${data.stressLevel}%
 • Focus Time: ${data.focusTime}% • Wellness Score: ${data.wellnessScore}%`;
 
@@ -173,21 +164,21 @@ EVENT_CREATE:{
       }
     }
 
-    contextPrompt += `\n\n💡 EXAMPLES OF DIRECT ACTION:
-User: "I need to meet with the team tomorrow"
-You: "Creating team meeting for tomorrow 2-3 PM" + EVENT_CREATE
+    contextPrompt += `\n\n💡 EXAMPLES:
+User: "What's the capital of France?"
+You: "The capital of France is Paris, known for landmarks like the Eiffel Tower and Louvre Museum."
 
-User: "Block some focus time" 
-You: "Blocking 2 hours of focus time for this afternoon" + EVENT_CREATE
+User: "How does photosynthesis work?"
+You: "Photosynthesis is the process where plants convert sunlight, water, and CO2 into glucose and oxygen..."
 
-User: "Gym session"
-You: "Scheduling 1-hour gym session for this evening" + EVENT_CREATE
+User: "Schedule a team meeting tomorrow"
+You: "I'll create that team meeting for tomorrow afternoon" + EVENT_CREATE
 
 REMEMBER: 
-- Current year is ${currentYear} - NEVER use any other year
-- Be direct and proactive - don't ask what you can assume
-- Use conversation memory to make smart decisions
-- Create events immediately when requested`;
+- Answer ANY question on ANY topic
+- Use conversation memory for personalized responses
+- Current year is ${currentYear} for any events
+- Only use EVENT_CREATE when scheduling is mentioned`;
 
     // Build conversation context from history for API
     let conversationContext = '';
@@ -291,26 +282,25 @@ REMEMBER:
       }
     }
 
-    // Generate contextual suggestions based on conversation memory and patterns
+    // Generate contextual suggestions based on conversation and topic
     let suggestions = [];
     const messageLower = message.toLowerCase();
     const recentTopics = conversationMemory.recentTopics;
     
-    if (recentTopics.includes('meetings')) {
-      suggestions = ['Schedule follow-up meeting', 'Block prep time', 'Add buffer time', 'Create recurring meeting'];
-    } else if (recentTopics.includes('focus_work')) {
-      suggestions = ['Schedule deep work block', 'Plan focused morning', 'Block distraction-free time', 'Create study session'];
-    } else if (recentTopics.includes('wellness')) {
-      suggestions = ['Schedule wellness break', 'Plan exercise time', 'Add meditation session', 'Block lunch break'];
-    } else if (messageLower.includes('today') || messageLower.includes('tomorrow')) {
-      suggestions = ['Plan my day', 'Schedule priorities', 'Block focus time', 'Add break time'];
-    } else if (createdEvent) {
-      suggestions = ['Schedule another event', 'Add preparation time', 'Plan follow-up', 'Create reminder'];
-    } else {
-      suggestions = ['Schedule meeting', 'Block focus time', 'Plan workout', 'Add break time'];
+    // Calendar-related suggestions
+    if (messageLower.includes('schedule') || messageLower.includes('meeting') || messageLower.includes('calendar') || createdEvent) {
+      suggestions = ['Schedule another event', 'Plan my day', 'Block focus time', 'Add break time'];
+    }
+    // General knowledge suggestions
+    else if (messageLower.includes('how') || messageLower.includes('what') || messageLower.includes('why')) {
+      suggestions = ['Tell me more', 'Give me an example', 'How does it work?', 'Schedule time to learn'];
+    }
+    // Default suggestions
+    else {
+      suggestions = ['Ask me anything', 'Schedule meeting', 'Plan my day', 'Explain a concept'];
     }
 
-    // Limit and randomize suggestions
+    // Limit suggestions
     suggestions = suggestions.slice(0, 3);
 
     return new Response(JSON.stringify({ 
