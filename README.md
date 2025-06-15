@@ -1,4 +1,4 @@
-# EventBridge
+# EventBridge – Your Calendar’s Best Friend
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-98.8%25-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/github/license/ScreenSlauth/EventBridge)](https://github.com/ScreenSlauth/EventBridge/blob/main/LICENSE)
