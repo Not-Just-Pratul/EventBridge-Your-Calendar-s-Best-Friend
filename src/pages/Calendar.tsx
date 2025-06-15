@@ -74,12 +74,13 @@ const Calendar = () => {
         />
         
         <SidebarInset className="flex flex-col overflow-hidden min-w-0 flex-1">
-          <div className="flex items-center gap-2 p-3 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200 flex-shrink-0 p-2 min-h-[44px]" />
-            <h1 className="font-bold text-base sm:text-lg md:text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent truncate flex-1 min-w-0">
+          {/* Mobile-optimized header */}
+          <div className="flex items-center gap-2 p-2 sm:p-3 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200 flex-shrink-0 p-2 min-h-[44px] min-w-[44px]" />
+            <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent truncate flex-1 min-w-0">
               EventBridge Calendar
             </h1>
-            <div className="text-xs text-gray-500 dark:text-gray-400 hidden md:block max-w-[150px] truncate">
+            <div className="text-xs text-gray-500 dark:text-gray-400 hidden lg:block max-w-[120px] xl:max-w-[150px] truncate">
               Welcome, {displayName}
             </div>
           </div>
@@ -91,7 +92,8 @@ const Calendar = () => {
             onViewChange={setCurrentView}
           />
           
-          <div className="flex-1 overflow-auto p-2 sm:p-4 md:p-6">
+          {/* Mobile-optimized content area */}
+          <div className="flex-1 overflow-auto p-1 sm:p-2 md:p-4 lg:p-6">
             <CalendarGrid 
               view={currentView}
               currentDate={currentDate}
@@ -103,12 +105,13 @@ const Calendar = () => {
         </SidebarInset>
       </div>
 
+      {/* Mobile-optimized floating action button */}
       <Button
         onClick={handleCreateEvent}
-        className="fixed bottom-4 right-4 h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-4 border-white dark:border-gray-800 active:scale-95"
+        className="fixed bottom-4 right-4 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-2 sm:border-4 border-white dark:border-gray-800 active:scale-95"
         size="icon"
       >
-        <Plus className="h-6 w-6 sm:h-7 sm:w-7" />
+        <Plus className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7" />
       </Button>
 
       <EventModal

@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Mail, Lock, User, ArrowLeft, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +15,8 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [authMethod, setAuthMethod] = useState<'email' | 'phone' | 'google'>('email');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [fullName, setFullName] = useState('');
@@ -22,6 +25,24 @@ const Auth = () => {
   const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const countryCodes = [
+    { code: '+1', country: 'US/CA', flag: '🇺🇸' },
+    { code: '+44', country: 'UK', flag: '🇬🇧' },
+    { code: '+91', country: 'India', flag: '🇮🇳' },
+    { code: '+86', country: 'China', flag: '🇨🇳' },
+    { code: '+81', country: 'Japan', flag: '🇯🇵' },
+    { code: '+49', country: 'Germany', flag: '🇩🇪' },
+    { code: '+33', country: 'France', flag: '🇫🇷' },
+    { code: '+39', country: 'Italy', flag: '🇮🇹' },
+    { code: '+34', country: 'Spain', flag: '🇪🇸' },
+    { code: '+61', country: 'Australia', flag: '🇦🇺' },
+    { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+    { code: '+7', country: 'Russia', flag: '🇷🇺' },
+    { code: '+82', country: 'S. Korea', flag: '🇰🇷' },
+    { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+    { code: '+27', country: 'S. Africa', flag: '🇿🇦' }
+  ];
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -83,10 +104,12 @@ const Auth = () => {
     setLoading(true);
     setError(null);
 
+    const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
     try {
       if (!otpSent) {
         const { error } = await supabase.auth.signInWithOtp({
-          phone,
+          phone: fullPhoneNumber,
           options: {
             data: !isLogin ? { full_name: fullName } : undefined
           }
@@ -99,7 +122,7 @@ const Auth = () => {
         });
       } else {
         const { error } = await supabase.auth.verifyOtp({
-          phone,
+          phone: fullPhoneNumber,
           token: otp,
           type: 'sms'
         });
@@ -327,16 +350,36 @@ const Auth = () => {
               
               <div>
                 <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1234567890"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                  disabled={otpSent}
-                  className="mt-2 h-12 text-base"
-                />
+                <div className="mt-2 flex space-x-2">
+                  <Select value={countryCode} onValueChange={setCountryCode} disabled={otpSent}>
+                    <SelectTrigger className="w-24 h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countryCodes.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          <div className="flex items-center space-x-2">
+                            <span>{country.flag}</span>
+                            <span>{country.code}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="1234567890"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                    required
+                    disabled={otpSent}
+                    className="flex-1 h-12 text-base"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Complete phone number: {countryCode}{phoneNumber}
+                </p>
               </div>
 
               {otpSent && (
@@ -347,7 +390,7 @@ const Auth = () => {
                     type="text"
                     placeholder="Enter 6-digit code"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     required
                     maxLength={6}
                     className="mt-2 h-12 text-base text-center tracking-widest"
