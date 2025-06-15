@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Sidebar,
@@ -14,12 +15,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Moon, Sun, Plus, Heart, Bot } from 'lucide-react';
+import { Moon, Sun, Plus, Heart, Bot, Calendar, List, Settings } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { LifeBalanceModal } from './LifeBalanceModal';
 import { AIAssistant } from './AIAssistant';
+import { SettingsModal } from './SettingsModal';
+import { useLifeBalanceMetrics } from '@/hooks/useLifeBalanceMetrics';
 
 interface AppSidebarProps {
   currentView: 'day' | 'week' | 'month';
@@ -30,8 +33,10 @@ interface AppSidebarProps {
 export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSidebarProps) {
   const [isLifeBalanceOpen, setIsLifeBalanceOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const metrics = useLifeBalanceMetrics();
 
   const { setTheme } = useTheme();
 
@@ -42,6 +47,9 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
       console.error("Logout failed:", error);
     }
   };
+
+  // Get user display name (full_name or fallback to email)
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email;
 
   return (
     <>
@@ -56,6 +64,28 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
           <SidebarGroup>
             <SidebarGroupLabel className="text-purple-600 dark:text-purple-400 font-semibold">
               Navigation
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={() => navigate('/calendar')} className="hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                    <Calendar className="h-4 w-4" />
+                    <span>Calendar</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={() => navigate('/events')} className="hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                    <List className="h-4 w-4" />
+                    <span>All Events</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-purple-600 dark:text-purple-400 font-semibold">
+              Calendar Views
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -108,6 +138,15 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                     <span>AI Assistant</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -134,11 +173,11 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
         <SidebarFooter>
           <div className="flex items-center space-x-2 px-4 pb-4">
             <Avatar className="h-8 w-8">
-              <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage src={user?.user_metadata?.avatar_url} alt={displayName} />
+              <AvatarFallback>{displayName?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-semibold">{user?.email}</p>
+              <p className="text-sm font-semibold">{displayName}</p>
               <Button variant="link" size="sm" onClick={handleLogout}>
                 Log out
               </Button>
@@ -155,12 +194,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
       <AIAssistant
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
-        lifeBalanceData={{
-          workLifeBalance: 72,
-          stressLevel: 35,
-          focusTime: 85,
-          wellnessScore: 78
-        }}
+        lifeBalanceData={metrics}
         onScheduleBreak={() => {
           setIsAIAssistantOpen(false);
           setIsLifeBalanceOpen(true);
@@ -169,6 +203,11 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
           setIsAIAssistantOpen(false);
           setIsLifeBalanceOpen(true);
         }}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </>
   );

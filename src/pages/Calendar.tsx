@@ -43,6 +43,9 @@ const Calendar = () => {
     return null;
   }
 
+  // Get user display name (full_name or fallback to email)
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email;
+
   const handleTimeSlotClick = (date: Date) => {
     setSelectedTimeSlot(date);
     setEditingEvent(null);
@@ -77,7 +80,7 @@ const Calendar = () => {
               EventBridge Calendar
             </h1>
             <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">
-              Welcome back, {user.email}
+              Welcome back, {displayName}
             </div>
           </div>
           

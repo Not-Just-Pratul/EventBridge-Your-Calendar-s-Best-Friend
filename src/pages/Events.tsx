@@ -44,6 +44,9 @@ const Events = () => {
     return null;
   }
 
+  // Get user display name (full_name or fallback to email)
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email;
+
   const handleDeleteEvent = async (eventId: string) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       await deleteEvent(eventId);
@@ -115,7 +118,7 @@ const Events = () => {
               All Events
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage all your events in one place
+              Welcome back, {displayName}! Manage all your events in one place
             </p>
           </div>
           
