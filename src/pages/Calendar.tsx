@@ -11,10 +11,12 @@ import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { WellnessTracker } from '@/components/WellnessTracker';
 import { QuickActions } from '@/components/QuickActions';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
+import { useEvents } from '@/hooks/useEvents';
 import { Plus, Brain, BarChart3, Bell, Palette, Heart, Zap } from 'lucide-react';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState<'day' | 'week' | 'month'>('week');
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
@@ -23,6 +25,8 @@ const Calendar = () => {
   const [isThemeCustomizerOpen, setIsThemeCustomizerOpen] = useState(false);
   const [isWellnessTrackerOpen, setIsWellnessTrackerOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
+  
+  const { events } = useEvents();
 
   const handleTimeSlotClick = (time: Date) => {
     setSelectedTime(time);
@@ -36,7 +40,10 @@ const Calendar = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
-      <NavigationSidebar />
+      <NavigationSidebar 
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -44,7 +51,9 @@ const Calendar = () => {
           <div className="flex items-center justify-between">
             <CalendarHeader 
               currentDate={currentDate} 
-              onDateChange={setCurrentDate} 
+              onDateChange={setCurrentDate}
+              currentView={currentView}
+              onViewChange={setCurrentView}
             />
             
             <div className="flex items-center space-x-2">
@@ -156,8 +165,10 @@ const Calendar = () => {
         {/* Calendar Grid */}
         <div className="flex-1 overflow-hidden">
           <CalendarGrid 
+            view={currentView}
             currentDate={currentDate} 
             onTimeSlotClick={handleTimeSlotClick}
+            events={events}
           />
         </div>
 
