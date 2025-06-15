@@ -3,11 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Premium Professional Color System */
 
 @layer base {
   :root {
-    --background: 255 255 255;
+    --background: 250 252 255;
     --foreground: 15 23 42;
 
     --card: 255 255 255;
@@ -16,74 +16,86 @@
     --popover: 255 255 255;
     --popover-foreground: 15 23 42;
 
-    --primary: 79 70 229;
+    --primary: 30 41 59;
     --primary-foreground: 248 250 252;
 
     --secondary: 241 245 249;
-    --secondary-foreground: 15 23 42;
+    --secondary-foreground: 30 41 59;
 
     --muted: 248 250 252;
     --muted-foreground: 100 116 139;
 
-    --accent: 241 245 249;
-    --accent-foreground: 15 23 42;
+    --accent: 226 232 240;
+    --accent-foreground: 30 41 59;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 248 250 252;
+    --destructive: 220 38 38;
+    --destructive-foreground: 254 242 242;
 
     --border: 226 232 240;
     --input: 226 232 240;
-    --ring: 79 70 229;
+    --ring: 30 41 59;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 248 250 252;
     --sidebar-foreground: 51 65 85;
-    --sidebar-primary: 15 23 42;
+    --sidebar-primary: 30 41 59;
     --sidebar-primary-foreground: 248 250 252;
     --sidebar-accent: 241 245 249;
-    --sidebar-accent-foreground: 15 23 42;
+    --sidebar-accent-foreground: 30 41 59;
     --sidebar-border: 226 232 240;
-    --sidebar-ring: 79 70 229;
+    --sidebar-ring: 30 41 59;
+
+    /* Premium accent colors */
+    --premium-gold: 251 191 36;
+    --premium-platinum: 156 163 175;
+    --premium-navy: 30 41 59;
+    --premium-charcoal: 17 24 39;
   }
 
   .dark {
-    --background: 2 6 23;
-    --foreground: 248 250 252;
+    --background: 9 9 11;
+    --foreground: 250 250 250;
 
-    --card: 15 23 42;
-    --card-foreground: 248 250 252;
+    --card: 24 24 27;
+    --card-foreground: 250 250 250;
 
-    --popover: 15 23 42;
-    --popover-foreground: 248 250 252;
+    --popover: 24 24 27;
+    --popover-foreground: 250 250 250;
 
-    --primary: 129 140 248;
-    --primary-foreground: 15 23 42;
+    --primary: 212 212 216;
+    --primary-foreground: 24 24 27;
 
-    --secondary: 30 41 59;
-    --secondary-foreground: 248 250 252;
+    --secondary: 39 39 42;
+    --secondary-foreground: 250 250 250;
 
-    --muted: 30 41 59;
-    --muted-foreground: 148 163 184;
+    --muted: 39 39 42;
+    --muted-foreground: 161 161 170;
 
-    --accent: 30 41 59;
-    --accent-foreground: 248 250 252;
+    --accent: 39 39 42;
+    --accent-foreground: 250 250 250;
 
     --destructive: 239 68 68;
-    --destructive-foreground: 248 250 252;
+    --destructive-foreground: 254 242 242;
 
-    --border: 30 41 59;
-    --input: 30 41 59;
-    --ring: 129 140 248;
+    --border: 39 39 42;
+    --input: 39 39 42;
+    --ring: 212 212 216;
 
-    --sidebar-background: 15 23 42;
-    --sidebar-foreground: 203 213 225;
-    --sidebar-primary: 129 140 248;
-    --sidebar-primary-foreground: 15 23 42;
-    --sidebar-accent: 30 41 59;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 30 41 59;
-    --sidebar-ring: 129 140 248;
+    --sidebar-background: 24 24 27;
+    --sidebar-foreground: 212 212 216;
+    --sidebar-primary: 250 250 250;
+    --sidebar-primary-foreground: 24 24 27;
+    --sidebar-accent: 39 39 42;
+    --sidebar-accent-foreground: 250 250 250;
+    --sidebar-border: 39 39 42;
+    --sidebar-ring: 212 212 216;
+
+    /* Premium dark accent colors */
+    --premium-gold: 234 179 8;
+    --premium-platinum: 212 212 216;
+    --premium-navy: 71 85 105;
+    --premium-charcoal: 39 39 42;
   }
 }
 
@@ -94,73 +106,83 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
   
-  /* Custom scrollbar */
+  /* Premium scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-slate-100 dark:bg-slate-800;
+    @apply bg-muted;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-400 dark:bg-slate-600 rounded-full;
+    @apply bg-muted-foreground/30 rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-500 dark:bg-slate-500;
+    @apply bg-muted-foreground/50;
   }
   
-  /* Smooth transitions for theme changes */
+  /* Smooth premium transitions */
   * {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 @layer components {
-  /* Custom gradient backgrounds */
-  .gradient-bg-light {
-    background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(255, 255, 255) 25%, rgb(238, 242, 255) 100%);
+  /* Premium gradient backgrounds */
+  .gradient-bg-premium {
+    background: linear-gradient(135deg, rgb(250, 252, 255) 0%, rgb(248, 250, 252) 50%, rgb(241, 245, 249) 100%);
   }
   
-  .gradient-bg-dark {
-    background: linear-gradient(135deg, rgb(2, 6, 23) 0%, rgb(15, 23, 42) 25%, rgb(30, 27, 75) 100%);
+  .gradient-bg-premium-dark {
+    background: linear-gradient(135deg, rgb(9, 9, 11) 0%, rgb(24, 24, 27) 50%, rgb(39, 39, 42) 100%);
   }
   
-  /* Enhanced focus styles */
-  .focus-enhanced:focus {
-    @apply ring-2 ring-indigo-500 ring-offset-2 ring-offset-background;
+  /* Premium focus styles */
+  .focus-premium:focus {
+    @apply ring-2 ring-primary/20 ring-offset-2 ring-offset-background outline-none;
   }
   
-  /* Elegant shadows */
-  .shadow-elegant {
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+  /* Premium shadows */
+  .shadow-premium {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
   
-  .shadow-elegant-lg {
-    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1), 0 4px 6px -2px rgba(79, 70, 229, 0.05);
+  .shadow-premium-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-premium-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 }
 
 @layer utilities {
-  /* Text gradients */
-  .text-gradient-primary {
-    @apply bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent;
+  /* Premium text gradients */
+  .text-gradient-premium {
+    @apply bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent;
   }
   
-  .text-gradient-secondary {
-    @apply bg-gradient-to-r from-slate-600 to-slate-800 dark:from-slate-300 dark:to-slate-100 bg-clip-text text-transparent;
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent;
   }
   
-  /* Button gradients */
-  .btn-gradient-primary {
-    @apply bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700;
+  /* Premium button gradients */
+  .btn-gradient-premium {
+    @apply bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-900 hover:to-slate-800 text-white;
   }
   
-  .btn-gradient-secondary {
-    @apply bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800;
+  .btn-gradient-gold {
+    @apply bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white;
+  }
+  
+  /* Premium glass effect */
+  .glass-effect {
+    @apply bg-white/70 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/10;
   }
 }

@@ -77,18 +77,23 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
       title: 'Life Balance', 
       icon: Heart, 
       action: () => setIsLifeBalanceOpen(true),
-      color: 'text-pink-600 dark:text-pink-400'
+      color: 'text-red-600 dark:text-red-400'
     },
     { 
       title: 'Quick Actions', 
       icon: Zap, 
       action: () => setIsQuickActionsOpen(true),
-      color: 'text-yellow-600 dark:text-yellow-400'
+      color: 'text-amber-600 dark:text-amber-400'
     },
   ];
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const toggleTheme = () => {
@@ -97,25 +102,25 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
 
   return (
     <>
-      <Sidebar className="border-r border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-        <SidebarHeader className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <Sidebar className="border-r border-slate-200 dark:border-slate-700 glass-effect">
+        <SidebarHeader className="p-6 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 btn-gradient-premium rounded-xl flex items-center justify-center shadow-premium">
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <h2 className="font-bold text-lg text-gradient-premium">
                 EventBridge
               </h2>
-              <Badge variant="secondary" className="text-xs">
-                Calendar Pro
+              <Badge variant="secondary" className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                Premium
               </Badge>
             </div>
           </div>
           
           <Button
             onClick={onCreateEvent}
-            className="w-full mt-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="w-full mt-4 btn-gradient-premium shadow-premium hover:shadow-premium-lg transition-all duration-300 font-medium"
           >
             <Plus className="mr-2 h-4 w-4" />
             New Event
@@ -124,7 +129,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
 
         <SidebarContent className="p-4">
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+            <SidebarGroupLabel className="text-slate-600 dark:text-slate-400 font-semibold">
               Navigation
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -133,16 +138,16 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={item.action}
-                      className={`w-full transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-950 ${
+                      className={`w-full transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
                         location.pathname === item.path
-                          ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-md' 
-                          : 'text-gray-700 dark:text-gray-300'
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-l-4 border-slate-800 dark:border-slate-200 shadow-premium' 
+                          : 'text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.title}
                       {location.pathname === item.path && (
-                        <Badge variant="secondary" className="ml-auto text-xs bg-purple-200 dark:bg-purple-800">
+                        <Badge variant="secondary" className="ml-auto text-xs bg-slate-200 dark:bg-slate-700">
                           Active
                         </Badge>
                       )}
@@ -155,7 +160,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
 
           {location.pathname === '/calendar' && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+              <SidebarGroupLabel className="text-slate-600 dark:text-slate-400 font-semibold">
                 Calendar Views
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -164,16 +169,16 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                     <SidebarMenuItem key={item.view}>
                       <SidebarMenuButton
                         onClick={() => onViewChange(item.view)}
-                        className={`w-full transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-950 ${
+                        className={`w-full transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
                           currentView === item.view 
-                            ? 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-md' 
-                            : 'text-gray-700 dark:text-gray-300'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-l-4 border-slate-800 dark:border-slate-200 shadow-premium' 
+                            : 'text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         <item.icon className="mr-3 h-5 w-5" />
                         {item.title}
                         {currentView === item.view && (
-                          <Badge variant="secondary" className="ml-auto text-xs bg-purple-200 dark:bg-purple-800">
+                          <Badge variant="secondary" className="ml-auto text-xs bg-slate-200 dark:bg-slate-700">
                             Active
                           </Badge>
                         )}
@@ -186,7 +191,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
           )}
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+            <SidebarGroupLabel className="text-slate-600 dark:text-slate-400 font-semibold">
               Smart Features
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -195,7 +200,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={item.action}
-                      className="w-full transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 dark:hover:from-purple-950 dark:hover:to-blue-950 text-gray-700 dark:text-gray-300 hover:shadow-md"
+                      className="w-full transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:shadow-premium"
                     >
                       <item.icon className={`mr-3 h-5 w-5 ${item.color}`} />
                       {item.title}
@@ -206,9 +211,9 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => setIsSettingsOpen(true)}
-                    className="w-full transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 dark:hover:from-purple-950 dark:hover:to-blue-950 text-gray-700 dark:text-gray-300 hover:shadow-md"
+                    className="w-full transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:shadow-premium"
                   >
-                    <Settings className="mr-3 h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <Settings className="mr-3 h-5 w-5 text-slate-600 dark:text-slate-400" />
                     Settings
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -217,17 +222,17 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <SidebarFooter className="p-4 border-t border-slate-200 dark:border-slate-700">
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+            <div className="flex items-center space-x-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="w-8 h-8 btn-gradient-premium rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {user?.email}
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                  {user?.email || 'User'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Premium User</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Premium User</p>
               </div>
             </div>
             
@@ -236,7 +241,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                 variant="outline"
                 size="sm"
                 onClick={toggleTheme}
-                className="flex-1 hover:bg-purple-50 dark:hover:bg-purple-950"
+                className="flex-1 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300 dark:border-slate-600"
               >
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
@@ -245,7 +250,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="flex-1 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400"
+                className="flex-1 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 border-slate-300 dark:border-slate-600"
               >
                 <LogOut className="h-4 w-4" />
               </Button>

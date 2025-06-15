@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,7 @@ const Auth = () => {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session);
       if (session) {
         navigate('/calendar');
       }
@@ -47,18 +48,20 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        
         if (error) throw error;
         
+        console.log('Sign in successful:', data);
         toast({
           title: "Welcome back!",
           description: "You've been successfully signed in.",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -71,6 +74,7 @@ const Auth = () => {
         
         if (error) throw error;
         
+        console.log('Sign up result:', data);
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",
@@ -90,23 +94,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-6">
+    <div className="min-h-screen gradient-bg-premium dark:gradient-bg-premium-dark flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-6 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+            className="mb-6 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 btn-gradient-premium rounded-xl flex items-center justify-center shadow-premium-lg">
               <Calendar className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-gradient-premium">
               EventBridge
             </h1>
           </div>
@@ -119,11 +123,11 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="p-8 shadow-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+        <Card className="p-8 shadow-premium-xl border border-slate-200 dark:border-slate-800 glass-effect">
           <form onSubmit={handleAuth} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+                <Label htmlFor="fullName" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
                   <User className="h-4 w-4" />
                   <span>Full Name</span>
                 </Label>
@@ -134,13 +138,13 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
-                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
+                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+              <Label htmlFor="email" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
                 <Mail className="h-4 w-4" />
                 <span>Email</span>
               </Label>
@@ -151,12 +155,12 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
+                className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+              <Label htmlFor="password" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
                 <Lock className="h-4 w-4" />
                 <span>Password</span>
               </Label>
@@ -168,7 +172,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
+                className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
               />
             </div>
 
@@ -182,12 +186,12 @@ const Auth = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full btn-gradient-premium py-3 rounded-xl shadow-premium-lg hover:shadow-premium-xl transition-all duration-300 font-medium"
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
                 </div>
               ) : (
@@ -200,7 +204,7 @@ const Auth = () => {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium transition-colors"
+              className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
