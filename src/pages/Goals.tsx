@@ -78,7 +78,7 @@ const Goals = () => {
     title: '',
     description: '',
     category: 'work',
-    priority: 'medium' as const,
+    priority: 'medium' as 'low' | 'medium' | 'high',
     targetDate: ''
   });
 
@@ -209,7 +209,10 @@ const Goals = () => {
                       </div>
                       <div>
                         <label className="text-sm font-medium">Priority</label>
-                        <Select value={newGoal.priority} onValueChange={(value: 'low' | 'medium' | 'high') => setNewGoal({ ...newGoal, priority: value })}>
+                        <Select 
+                          value={newGoal.priority} 
+                          onValueChange={(value: 'low' | 'medium' | 'high') => setNewGoal({ ...newGoal, priority: value })}
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
