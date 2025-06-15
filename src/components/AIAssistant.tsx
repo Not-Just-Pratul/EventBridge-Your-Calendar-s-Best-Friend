@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Send, Clock, Zap, Heart, User, Loader2, Calendar, Target, BookOpen, Coffee, Lightbulb } from 'lucide-react';
+import { Bot, Send, Clock, Zap, Heart, User, Loader2, Calendar, Target, BookOpen, Coffee, Lightbulb, CheckCircle, Plus, CalendarPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useEvents } from '@/hooks/useEvents';
 
 interface Message {
   id: string;
@@ -15,6 +17,7 @@ interface Message {
   content: string;
   timestamp: Date;
   suggestions?: string[];
+  createdEvent?: any;
 }
 
 interface AIAssistantProps {
@@ -41,28 +44,36 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm your AI assistant powered by Google Gemini. I can help you with calendar management, productivity tips, general questions, and much more. What would you like to know or discuss today?`,
+      content: `Hello! I'm your AI calendar assistant with full calendar control. I can create, modify, and manage your events directly through our conversation. Just tell me what you need to schedule and I'll take care of it! 
+
+Try saying things like:
+• "Schedule a team meeting tomorrow at 2pm"
+• "Block 2 hours for focused work"
+• "I need to go to the gym"
+• "Plan my day optimally"`,
       timestamp: new Date(),
       suggestions: [
-        'Help me plan my day',
-        'Give me productivity tips', 
-        'What\'s the weather like?',
-        'Explain quantum physics',
-        'Schedule optimization tips',
-        'Random fun fact'
+        'Schedule a meeting for me',
+        'Create a focus block',
+        'Plan my ideal day',
+        'Add a wellness activity',
+        'Schedule time for priorities',
+        'Optimize my calendar'
       ]
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const { refetch } = useEvents();
 
-  const quickActions = [
-    { icon: Clock, label: 'Schedule Break', action: () => onScheduleBreak?.() },
-    { icon: Zap, label: 'Focus Session', action: () => onStartFocusSession?.() },
-    { icon: Calendar, label: 'Plan My Day', action: () => handleSendMessage('Help me plan my day based on my calendar') },
-    { icon: Target, label: 'Set Goals', action: () => handleSendMessage('Help me set productive goals for today') },
-    { icon: BookOpen, label: 'Learn Something', action: () => handleSendMessage('Teach me something interesting') },
-    { icon: Coffee, label: 'Take a Break', action: () => handleSendMessage('I need break ideas') },
+  const quickCalendarActions = [
+    { icon: CalendarPlus, label: 'Quick Event', action: () => handleSendMessage('Schedule something important for me today') },
+    { icon: Clock, label: 'Focus Block', action: () => handleSendMessage('Create a 2-hour focus block for deep work') },
+    { icon: Zap, label: 'Meeting', action: () => handleSendMessage('Schedule a team meeting tomorrow') },
+    { icon: Target, label: 'Plan Day', action: () => handleSendMessage('Plan my day optimally based on my priorities') },
+    { icon: Heart, label: 'Wellness', action: () => handleSendMessage('Schedule a wellness break for me') },
+    { icon: Coffee, label: 'Break Time', action: () => handleSendMessage('I need to schedule some break time') },
   ];
 
   const handleSendMessage = async (message?: string) => {
@@ -81,11 +92,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setIsLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           message: messageToSend,
           lifeBalanceData,
-          context: 'general_assistant'
+          context: 'calendar_control',
+          userId: user?.id
         }
       });
 
@@ -98,16 +113,21 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         role: 'assistant',
         content: data.response,
         timestamp: new Date(),
-        suggestions: data.suggestions || []
+        suggestions: data.suggestions || [],
+        createdEvent: data.createdEvent
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Only execute actions if explicitly requested, don't auto-trigger
-      if (data.action === 'schedule_break' && messageToSend.toLowerCase().includes('break')) {
-        // Only if user specifically asked for break
-      } else if (data.action === 'focus_session' && messageToSend.toLowerCase().includes('focus')) {
-        // Only if user specifically asked for focus
+      // Show success toast if event was created
+      if (data.createdEvent) {
+        toast({
+          title: "Event Created Successfully!",
+          description: `"${data.createdEvent.title}" has been added to your calendar.`,
+        });
+        
+        // Refresh events to show the new event
+        refetch();
       }
 
     } catch (error) {
@@ -115,10 +135,16 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again or rephrase your question.',
+        content: 'I apologize, but I encountered an error. Please try again or rephrase your request.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to process your request. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -128,13 +154,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setMessages([{
       id: '1',
       role: 'assistant',
-      content: `Chat cleared! I'm here to help with anything you need. What would you like to discuss?`,
+      content: `Chat cleared! I'm ready to help you manage your calendar. What would you like to schedule?`,
       timestamp: new Date(),
       suggestions: [
-        'Help me be more productive',
-        'Tell me a joke',
-        'Explain a complex topic',
-        'Help with my schedule'
+        'Schedule my priorities',
+        'Create a focus session',
+        'Plan tomorrow',
+        'Add a meeting'
       ]
     }]);
   };
@@ -146,8 +172,8 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Bot className="h-5 w-5 text-blue-600" />
-              <span>AI Assistant</span>
-              <Badge variant="outline" className="text-green-600">Gemini Powered</Badge>
+              <span>AI Calendar Assistant</span>
+              <Badge variant="outline" className="text-green-600">Full Control</Badge>
             </div>
             <Button variant="outline" size="sm" onClick={clearChat}>
               Clear Chat
@@ -155,15 +181,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Quick Actions */}
+        {/* Quick Calendar Actions */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          {quickActions.map((action, index) => (
+          {quickCalendarActions.map((action, index) => (
             <Button
               key={index}
               variant="outline"
               size="sm"
               onClick={action.action}
-              className="flex items-center space-x-1 text-xs"
+              className="flex items-center space-x-1 text-xs hover:bg-blue-50"
             >
               <action.icon className="h-3 w-3" />
               <span>{action.label}</span>
@@ -206,6 +232,20 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                         : 'bg-white border border-gray-200 text-gray-900'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      
+                      {/* Show created event info */}
+                      {message.createdEvent && (
+                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                          <div className="flex items-center space-x-1 text-green-700">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="text-xs font-medium">Event Created</span>
+                          </div>
+                          <p className="text-xs text-green-600 mt-1">
+                            {message.createdEvent.title} - {new Date(message.createdEvent.start_time).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                      
                       <p className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </p>
@@ -241,7 +281,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                   <div className="bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                      <span className="text-sm">Thinking...</span>
+                      <span className="text-sm">Creating your event...</span>
                     </div>
                   </div>
                 </div>
@@ -251,39 +291,39 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         </ScrollArea>
 
         <div className="border-t pt-4 space-y-3">
-          {/* Context Options */}
+          {/* Calendar Control Examples */}
           <div className="flex flex-wrap gap-1">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSendMessage('Help me with my calendar')}
+              onClick={() => handleSendMessage('Schedule a 1-hour meeting tomorrow')}
               className="text-xs"
             >
-              📅 Calendar Help
+              📅 Quick Meeting
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSendMessage('Give me a motivational quote')}
+              onClick={() => handleSendMessage('Block 2 hours for deep work today')}
               className="text-xs"
             >
-              ✨ Motivation
+              🎯 Focus Block
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSendMessage('Explain something interesting')}
+              onClick={() => handleSendMessage('Plan my optimal schedule for tomorrow')}
               className="text-xs"
             >
-              🧠 Learn
+              ⚡ Plan Day
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSendMessage('Help me solve a problem')}
+              onClick={() => handleSendMessage('I need a wellness break')}
               className="text-xs"
             >
-              🔧 Problem Solving
+              💚 Wellness
             </Button>
           </div>
           
@@ -291,7 +331,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask me anything - calendar help, general questions, productivity tips..."
+              placeholder="Tell me what to schedule... I'll create events directly for you!"
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
               disabled={isLoading}
               className="flex-1"

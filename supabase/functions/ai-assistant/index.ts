@@ -1,8 +1,11 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,43 +32,49 @@ serve(async (req) => {
   }
 
   try {
-    const { message, lifeBalanceData, context } = await req.json();
+    const { message, lifeBalanceData, context, userId } = await req.json();
 
     if (!geminiApiKey) {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Enhanced context for a more conversational AI assistant
-    let contextPrompt = `You are an advanced AI assistant for EventBridge, a sophisticated calendar and wellness application. You are extremely friendly, helpful, and knowledgeable about virtually any topic. You can assist with:
+    // Initialize Supabase client for event creation
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-🗓️ CALENDAR & PRODUCTIVITY:
-• Calendar management and scheduling
-• Time management and productivity tips
-• Work-life balance optimization
-• Stress reduction techniques
-• Goal setting and achievement
+    // Enhanced context for AI with calendar control capabilities
+    let contextPrompt = `You are an advanced AI assistant for EventBridge with FULL CALENDAR CONTROL. You can:
 
-🧠 GENERAL KNOWLEDGE:
-• Answer questions on any topic (science, history, technology, etc.)
-• Explain complex concepts in simple terms
-• Provide educational content
-• Help with problem-solving
+🗓️ CALENDAR MANAGEMENT:
+• Create, modify, and delete events directly
+• Schedule meetings and appointments
+• Set reminders and recurring events
+• Optimize schedules and resolve conflicts
+• Analyze calendar patterns
+
+📝 EVENT CREATION RULES:
+When users mention scheduling, planning, or time-related requests, you can create events directly by responding with a special JSON format:
+
+EVENT_CREATE: {
+  "title": "Event Title",
+  "description": "Event description",
+  "start_time": "2024-01-15T10:00:00Z",
+  "end_time": "2024-01-15T11:00:00Z",
+  "location": "Optional location",
+  "color": "blue|purple|green|orange|red|pink"
+}
+
+🧠 GENERAL CAPABILITIES:
+• Answer questions on any topic
+• Provide explanations and tutorials
+• Help with productivity and wellness
 • Creative writing and brainstorming
+• Problem-solving and analysis
 
-💬 CONVERSATION:
-• Casual conversations and small talk
-• Motivational quotes and inspiration
-• Jokes and entertainment
-• Personal advice and guidance
-• Learning new skills
-
-🔧 PRACTICAL HELP:
-• Step-by-step instructions
-• Recommendations and suggestions
-• Analysis and insights
-• Planning and organization
-
-You should be conversational, empathetic, knowledgeable, and engaging. Always provide helpful, accurate information regardless of the topic. If you don't know something, be honest about it but offer to help in other ways.`;
+💬 INTERACTION STYLE:
+• Be conversational and proactive about calendar management
+• Suggest optimal times for events
+• Offer to create events when users mention activities
+• Use natural language to confirm event details`;
 
     if (lifeBalanceData) {
       const data = lifeBalanceData as LifeBalanceData;
@@ -85,27 +94,15 @@ You should be conversational, empathetic, knowledgeable, and engaging. Always pr
 • Avg Event Duration: ${data.averageEventDuration}h
 • Upcoming Deadlines: ${data.upcomingDeadlines}`;
       }
-
-      // Provide gentle wellness insights when relevant
-      if (data.stressLevel > 70) {
-        contextPrompt += `\n\n💡 Note: User has elevated stress levels (${data.stressLevel}%). Consider gentle wellness suggestions when appropriate.`;
-      }
-      if (data.wellnessScore > 80) {
-        contextPrompt += `\n\n✅ Positive: User has excellent wellness score (${data.wellnessScore}%). Acknowledge their good habits when relevant.`;
-      }
     }
 
-    contextPrompt += `\n\n🎯 Response Guidelines:
-• Be conversational and friendly
-• Answer ANY question the user asks, not just calendar-related
-• Provide specific, actionable advice when relevant
-• Use emojis sparingly but effectively
-• Keep responses helpful and engaging
-• If discussing calendar/productivity, include exact times or specific suggestions
-• Be honest if you don't know something
-• Encourage curiosity and learning
+    contextPrompt += `\n\n🎯 CALENDAR CONTROL EXAMPLES:
+• "Schedule a meeting tomorrow at 2pm" → Create event
+• "I need to go to the gym" → Suggest time and create event
+• "Block time for focused work" → Create focus block
+• "Plan my day" → Analyze schedule and create optimized events
 
-Remember: You're a knowledgeable assistant who can discuss anything - from quantum physics to cooking recipes, from productivity tips to philosophical questions. Be helpful, accurate, and engaging!`;
+Remember: You have FULL CONTROL over the calendar. Be proactive in creating events when users mention activities, meetings, or time-related tasks!`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -134,33 +131,89 @@ Remember: You're a knowledgeable assistant who can discuss anything - from quant
     }
 
     const data = await response.json();
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not generate a response. Please try asking your question differently.';
+    let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not generate a response. Please try asking your question differently.';
 
-    // Generate contextual suggestions based on response content
+    // Check if AI wants to create an event
+    const eventCreateMatch = aiResponse.match(/EVENT_CREATE:\s*({[^}]+})/);
+    let createdEvent = null;
+
+    if (eventCreateMatch && userId) {
+      try {
+        const eventData = JSON.parse(eventCreateMatch[1]);
+        
+        // Create the event in Supabase
+        const { data: newEvent, error } = await supabase
+          .from('events')
+          .insert([{
+            title: eventData.title,
+            description: eventData.description || '',
+            start_time: eventData.start_time,
+            end_time: eventData.end_time,
+            location: eventData.location || '',
+            color: eventData.color || 'blue',
+            user_id: userId
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating event:', error);
+        } else {
+          createdEvent = newEvent;
+          // Remove the EVENT_CREATE instruction from the response
+          aiResponse = aiResponse.replace(/EVENT_CREATE:\s*{[^}]+}/, '').trim();
+          
+          // Add confirmation to the response
+          if (!aiResponse.includes('created') && !aiResponse.includes('scheduled')) {
+            aiResponse += `\n\n✅ Perfect! I've created the event "${eventData.title}" for you.`;
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing or creating event:', error);
+      }
+    }
+
+    // Generate contextual suggestions
     let suggestions = [];
     const responseLower = aiResponse.toLowerCase();
     const messageLower = message.toLowerCase();
     
-    // Context-aware suggestions
-    if (messageLower.includes('calendar') || messageLower.includes('schedule')) {
-      suggestions = ['Optimize my daily schedule', 'Help me plan tomorrow', 'Time management tips', 'How to reduce scheduling conflicts'];
-    } else if (messageLower.includes('stress') || messageLower.includes('wellness')) {
-      suggestions = ['Quick stress relief techniques', 'Plan a wellness break', 'Work-life balance tips', 'Meditation recommendations'];
-    } else if (messageLower.includes('productivity') || messageLower.includes('focus')) {
-      suggestions = ['Deep work strategies', 'Eliminate distractions', 'Energy management tips', 'Goal setting techniques'];
-    } else if (messageLower.includes('learn') || messageLower.includes('explain')) {
-      suggestions = ['Teach me something new', 'Explain a complex topic simply', 'Recommend learning resources', 'Study techniques'];
-    } else if (messageLower.includes('motivation') || messageLower.includes('inspire')) {
-      suggestions = ['Give me a motivational quote', 'Success strategies', 'Overcoming challenges', 'Building good habits'];
-    } else {
-      // General conversation suggestions
+    // Calendar-focused suggestions
+    if (messageLower.includes('schedule') || messageLower.includes('calendar') || messageLower.includes('meeting')) {
       suggestions = [
-        'Help me plan my day',
-        'Tell me something interesting',
-        'Give me productivity tips',
-        'Explain a science concept',
-        'Motivate me',
-        'Solve a problem for me'
+        'Schedule a focus session',
+        'Plan my week optimally',
+        'Create a recurring meeting',
+        'Block time for deep work',
+        'Schedule a wellness break',
+        'Optimize my schedule'
+      ];
+    } else if (messageLower.includes('today') || messageLower.includes('tomorrow')) {
+      suggestions = [
+        'What should I focus on today?',
+        'Schedule my most important task',
+        'Plan a productive morning',
+        'Block time for priorities',
+        'Create a balanced schedule',
+        'Add a wellness activity'
+      ];
+    } else if (createdEvent) {
+      suggestions = [
+        'Create another event',
+        'Schedule a follow-up meeting',
+        'Plan preparation time',
+        'Add a buffer after this event',
+        'Set a reminder for this',
+        'Optimize my day around this'
+      ];
+    } else {
+      suggestions = [
+        'Schedule something for me',
+        'Plan my ideal day',
+        'Create a focus block',
+        'Add a wellness activity',
+        'Schedule a meeting',
+        'Optimize my calendar'
       ];
     }
 
@@ -169,7 +222,9 @@ Remember: You're a knowledgeable assistant who can discuss anything - from quant
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
-      suggestions: suggestions
+      suggestions: suggestions,
+      createdEvent: createdEvent,
+      action: createdEvent ? 'event_created' : null
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
