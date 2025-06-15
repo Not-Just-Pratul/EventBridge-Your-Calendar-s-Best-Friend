@@ -34,7 +34,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
   const [isLifeBalanceOpen, setIsLifeBalanceOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const metrics = useLifeBalanceMetrics();
 
@@ -42,6 +42,7 @@ export function AppSidebar({ currentView, onViewChange, onCreateEvent }: AppSide
 
   const handleLogout = async () => {
     try {
+      await signOut();
       navigate('/auth');
     } catch (error) {
       console.error("Logout failed:", error);
