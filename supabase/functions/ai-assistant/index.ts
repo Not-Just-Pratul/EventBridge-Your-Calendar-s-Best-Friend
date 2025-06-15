@@ -41,7 +41,29 @@ serve(async (req) => {
     // Initialize Supabase client for event creation
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    // Enhanced context for AI with calendar control capabilities
+    // Get current date and time information
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Format current date for AI context
+    const currentDateString = now.toISOString();
+    const currentDateReadable = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const currentTimeReadable = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    });
+
+    // Enhanced context for AI with calendar control capabilities and correct date handling
     let contextPrompt = `You are an advanced AI assistant for EventBridge with FULL CALENDAR CONTROL. You can:
 
 🗓️ CALENDAR MANAGEMENT:
@@ -51,17 +73,38 @@ serve(async (req) => {
 • Optimize schedules and resolve conflicts
 • Analyze calendar patterns
 
-📝 EVENT CREATION RULES:
-When users mention scheduling, planning, or time-related requests, you can create events directly by responding with a special JSON format:
+⏰ CURRENT DATE & TIME INFORMATION:
+• Today is: ${currentDateReadable}
+• Current time: ${currentTimeReadable}
+• Current year: ${currentYear}
+• ISO format: ${currentDateString}
 
-EVENT_CREATE: {
+📝 EVENT CREATION RULES:
+When users mention scheduling, planning, or time-related requests, you can create events directly by responding with a special JSON format.
+
+CRITICAL DATE REQUIREMENTS:
+• ALWAYS use ${currentYear} as the year (NOT 2024 or any other year)
+• When user says "today", use: ${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}
+• When user says "tomorrow", add 1 day to today's date
+• When user says "next week", add 7 days to today's date
+• ALL dates MUST be in ISO format: YYYY-MM-DDTHH:MM:SS.000Z
+• Default to 1-hour duration if not specified
+• Use reasonable times (9 AM - 6 PM for work, evenings for personal)
+
+EVENT_CREATE FORMAT:
+{
   "title": "Event Title",
   "description": "Event description",
-  "start_time": "2024-01-15T10:00:00Z",
-  "end_time": "2024-01-15T11:00:00Z",
+  "start_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
+  "end_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
   "location": "Optional location",
   "color": "blue|purple|green|orange|red|pink"
 }
+
+EXAMPLES OF CORRECT DATE HANDLING:
+• "Schedule a meeting today at 2pm" → start_time: "${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}T14:00:00.000Z"
+• "Book dentist appointment tomorrow at 10am" → start_time: "${currentYear}-${currentMonth.toString().padStart(2, '0')}-${(currentDay + 1).toString().padStart(2, '0')}T10:00:00.000Z"
+• "Meeting next Monday" → Calculate next Monday from today and use ${currentYear}
 
 🧠 GENERAL CAPABILITIES:
 • Answer questions on any topic
@@ -74,7 +117,8 @@ EVENT_CREATE: {
 • Be conversational and proactive about calendar management
 • Suggest optimal times for events
 • Offer to create events when users mention activities
-• Use natural language to confirm event details`;
+• Use natural language to confirm event details
+• ALWAYS confirm the date you're using when creating events`;
 
     if (lifeBalanceData) {
       const data = lifeBalanceData as LifeBalanceData;
@@ -97,12 +141,17 @@ EVENT_CREATE: {
     }
 
     contextPrompt += `\n\n🎯 CALENDAR CONTROL EXAMPLES:
-• "Schedule a meeting tomorrow at 2pm" → Create event
-• "I need to go to the gym" → Suggest time and create event
-• "Block time for focused work" → Create focus block
-• "Plan my day" → Analyze schedule and create optimized events
+• "Schedule a meeting tomorrow at 2pm" → Create event for ${new Date(now.getTime() + 24*60*60*1000).toDateString()} at 2pm
+• "I need to go to the gym" → Suggest time and create event for ${currentYear}
+• "Block time for focused work" → Create focus block for today or specified date in ${currentYear}
+• "Plan my day" → Analyze schedule and create optimized events for ${currentYear}
 
-Remember: You have FULL CONTROL over the calendar. Be proactive in creating events when users mention activities, meetings, or time-related tasks!`;
+REMEMBER: 
+- Current year is ${currentYear}
+- Today is ${currentDateReadable}
+- NEVER use 2024 or any year other than ${currentYear}
+- Always confirm dates when creating events
+- Be proactive in creating events when users mention activities!`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -141,6 +190,22 @@ Remember: You have FULL CONTROL over the calendar. Be proactive in creating even
       try {
         const eventData = JSON.parse(eventCreateMatch[1]);
         
+        // Validate dates are in current year
+        const startDate = new Date(eventData.start_time);
+        const endDate = new Date(eventData.end_time);
+        
+        if (startDate.getFullYear() !== currentYear) {
+          console.warn(`Event start_time year corrected from ${startDate.getFullYear()} to ${currentYear}`);
+          startDate.setFullYear(currentYear);
+          eventData.start_time = startDate.toISOString();
+        }
+        
+        if (endDate.getFullYear() !== currentYear) {
+          console.warn(`Event end_time year corrected from ${endDate.getFullYear()} to ${currentYear}`);
+          endDate.setFullYear(currentYear);
+          eventData.end_time = endDate.toISOString();
+        }
+        
         // Create the event in Supabase
         const { data: newEvent, error } = await supabase
           .from('events')
@@ -163,9 +228,21 @@ Remember: You have FULL CONTROL over the calendar. Be proactive in creating even
           // Remove the EVENT_CREATE instruction from the response
           aiResponse = aiResponse.replace(/EVENT_CREATE:\s*{[^}]+}/, '').trim();
           
-          // Add confirmation to the response
+          // Add confirmation to the response with correct date
+          const eventDate = new Date(newEvent.start_time).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+          const eventTime = new Date(newEvent.start_time).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+          });
+          
           if (!aiResponse.includes('created') && !aiResponse.includes('scheduled')) {
-            aiResponse += `\n\n✅ Perfect! I've created the event "${eventData.title}" for you.`;
+            aiResponse += `\n\n✅ Perfect! I've created the event "${eventData.title}" for ${eventDate} at ${eventTime}.`;
           }
         }
       } catch (error) {
