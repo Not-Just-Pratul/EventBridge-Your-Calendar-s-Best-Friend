@@ -91,9 +91,10 @@ const Landing = () => {
           <Button
             size="lg"
             variant="outline"
+            onClick={() => navigate('/features')}
             className="text-lg px-8 py-4 rounded-xl border-2 hover:border-purple-300 transition-all duration-300"
           >
-            Watch Demo
+            View Features
           </Button>
         </div>
       </section>

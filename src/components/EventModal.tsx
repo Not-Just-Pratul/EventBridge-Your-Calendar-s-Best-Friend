@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,11 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, MapPin, Users, Sparkles, Palette } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Calendar, Clock, Users, Sparkles, Palette, Bell, Repeat } from 'lucide-react';
 import { format, addMinutes } from 'date-fns';
 import { useEvents, Event } from '@/hooks/useEvents';
-import { LocationPicker } from '@/components/LocationPicker';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -32,8 +32,13 @@ export const EventModal: React.FC<EventModalProps> = ({
   const [endTime, setEndTime] = useState('');
   const [duration, setDuration] = useState('30');
   const [color, setColor] = useState('blue');
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [reminder, setReminder] = useState('15');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState('weekly');
+  const [attendees, setAttendees] = useState('');
+  const [priority, setPriority] = useState('medium');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [locationTab, setLocationTab] = useState('manual');
   const { createEvent, updateEvent } = useEvents();
 
   useEffect(() => {
@@ -53,6 +58,11 @@ export const EventModal: React.FC<EventModalProps> = ({
       setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
       setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
       setColor('blue');
+      setIsAllDay(false);
+      setReminder('15');
+      setIsRecurring(false);
+      setAttendees('');
+      setPriority('medium');
     }
   }, [editEvent, selectedTime, duration]);
 
@@ -93,11 +103,11 @@ export const EventModal: React.FC<EventModalProps> = ({
     setEndTime('');
     setDuration('30');
     setColor('blue');
-    setLocationTab('manual');
-  };
-
-  const handleLocationSelect = (selectedLocation: { address: string; lat: number; lng: number }) => {
-    setLocation(selectedLocation.address);
+    setIsAllDay(false);
+    setReminder('15');
+    setIsRecurring(false);
+    setAttendees('');
+    setPriority('medium');
   };
 
   const suggestions = [
@@ -120,8 +130,20 @@ export const EventModal: React.FC<EventModalProps> = ({
     { name: 'Pink', value: 'pink', class: 'bg-pink-500' }
   ];
 
-  const durationOptions = [
-    '15', '30', '45', '60', '90', '120'
+  const durationOptions = ['15', '30', '45', '60', '90', '120'];
+  const reminderOptions = [
+    { label: 'No reminder', value: 'none' },
+    { label: '5 minutes before', value: '5' },
+    { label: '15 minutes before', value: '15' },
+    { label: '30 minutes before', value: '30' },
+    { label: '1 hour before', value: '60' },
+    { label: '1 day before', value: '1440' }
+  ];
+
+  const priorityOptions = [
+    { label: 'Low', value: 'low', color: 'text-green-600' },
+    { label: 'Medium', value: 'medium', color: 'text-yellow-600' },
+    { label: 'High', value: 'high', color: 'text-red-600' }
   ];
 
   const handleDurationChange = (newDuration: string) => {
@@ -173,16 +195,25 @@ export const EventModal: React.FC<EventModalProps> = ({
             )}
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="all-day"
+              checked={isAllDay}
+              onCheckedChange={setIsAllDay}
+            />
+            <Label htmlFor="all-day" className="text-sm font-medium">All Day Event</Label>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="startTime" className="text-sm font-medium">Start Time</Label>
               <Input
                 id="startTime"
-                type="datetime-local"
+                type={isAllDay ? "date" : "datetime-local"}
                 value={startTime}
                 onChange={(e) => {
                   setStartTime(e.target.value);
-                  if (e.target.value) {
+                  if (e.target.value && !isAllDay) {
                     const start = new Date(e.target.value);
                     const end = addMinutes(start, parseInt(duration));
                     setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
@@ -198,33 +229,56 @@ export const EventModal: React.FC<EventModalProps> = ({
               <Label htmlFor="endTime" className="text-sm font-medium">End Time</Label>
               <Input
                 id="endTime"
-                type="datetime-local"
+                type={isAllDay ? "date" : "datetime-local"}
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 className="mt-2"
-                disabled={isProcessing}
-                required
+                disabled={isProcessing || isAllDay}
+                required={!isAllDay}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="duration" className="text-sm font-medium">Quick Duration</Label>
-              <Select value={duration} onValueChange={handleDurationChange}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {durationOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option} minutes
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {!isAllDay && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="duration" className="text-sm font-medium">Quick Duration</Label>
+                <Select value={duration} onValueChange={handleDurationChange}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {durationOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option} minutes
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div>
+                <Label htmlFor="reminder" className="text-sm font-medium flex items-center">
+                  <Bell className="h-4 w-4 mr-1" />
+                  Reminder
+                </Label>
+                <Select value={reminder} onValueChange={setReminder}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reminderOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="color" className="text-sm font-medium flex items-center">
                 <Palette className="h-4 w-4 mr-1" />
@@ -246,39 +300,79 @@ export const EventModal: React.FC<EventModalProps> = ({
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorityOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <span className={option.color}>{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="location" className="text-sm font-medium flex items-center">
-              <MapPin className="h-4 w-4 mr-1" />
-              Location
-            </Label>
-            
-            <Tabs value={locationTab} onValueChange={setLocationTab} className="mt-2">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                <TabsTrigger value="map">Map Picker</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="manual" className="mt-4">
-                <Input
-                  id="location"
-                  placeholder="Where is this happening?"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="border-2 focus:border-purple-300 transition-colors duration-200"
-                  disabled={isProcessing}
-                />
-              </TabsContent>
-              
-              <TabsContent value="map" className="mt-4">
-                <LocationPicker
-                  onLocationSelect={handleLocationSelect}
-                  initialLocation={location}
-                />
-              </TabsContent>
-            </Tabs>
+            <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+            <Input
+              id="location"
+              placeholder="Where is this happening?"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="mt-2 border-2 focus:border-purple-300 transition-colors duration-200"
+              disabled={isProcessing}
+            />
           </div>
+
+          <div>
+            <Label htmlFor="attendees" className="text-sm font-medium flex items-center">
+              <Users className="h-4 w-4 mr-1" />
+              Attendees (comma separated emails)
+            </Label>
+            <Input
+              id="attendees"
+              placeholder="john@example.com, jane@example.com"
+              value={attendees}
+              onChange={(e) => setAttendees(e.target.value)}
+              className="mt-2 border-2 focus:border-purple-300 transition-colors duration-200"
+              disabled={isProcessing}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="recurring"
+              checked={isRecurring}
+              onCheckedChange={setIsRecurring}
+            />
+            <Label htmlFor="recurring" className="text-sm font-medium flex items-center">
+              <Repeat className="h-4 w-4 mr-1" />
+              Recurring Event
+            </Label>
+          </div>
+
+          {isRecurring && (
+            <div>
+              <Label htmlFor="recurrence" className="text-sm font-medium">Repeat</Label>
+              <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="description" className="text-sm font-medium">
@@ -321,14 +415,6 @@ export const EventModal: React.FC<EventModalProps> = ({
             </Button>
           </div>
         </form>
-
-        {isProcessing && (
-          <div className="text-center py-2">
-            <div className="text-sm text-purple-600 dark:text-purple-400 animate-pulse">
-              🤖 Working on it...
-            </div>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
