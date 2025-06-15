@@ -73,13 +73,13 @@ const Index = () => {
           onCreateEvent={handleCreateEvent}
         />
         
-        <SidebarInset className="flex flex-col overflow-hidden">
-          <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-            <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors duration-200" />
-            <h1 className="font-bold text-xl text-black dark:text-white">
+        <SidebarInset className="flex flex-col overflow-hidden min-w-0 flex-1">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+            <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors duration-200 flex-shrink-0" />
+            <h1 className="font-bold text-lg sm:text-xl text-black dark:text-white truncate">
               EventBridge Calendar
             </h1>
-            <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">
+            <div className="ml-auto text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
               Welcome back, {displayName}
             </div>
           </div>
@@ -91,7 +91,7 @@ const Index = () => {
             onViewChange={setCurrentView}
           />
           
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-3 sm:p-6">
             <CalendarGrid 
               view={currentView}
               currentDate={currentDate}
@@ -105,10 +105,10 @@ const Index = () => {
 
       <Button
         onClick={handleCreateEvent}
-        className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50"
+        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50"
         size="icon"
       >
-        <Plus className="h-8 w-8" />
+        <Plus className="h-6 w-6 sm:h-8 sm:w-8" />
       </Button>
 
       <EventModal
