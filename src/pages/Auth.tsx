@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -174,28 +173,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md space-y-6">
         <div className="text-center">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-6 text-gray-600 hover:text-gray-800 text-sm sm:text-base min-h-[44px]"
+            className="mb-6 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white text-sm sm:text-base min-h-[44px]"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-white" />
+            <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-white dark:text-black" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
               EventBridge
             </h1>
           </div>
           
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-black dark:text-white mb-2">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">
@@ -203,10 +202,10 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="p-6 sm:p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <Card className="p-6 sm:p-8 shadow-2xl border-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
           {/* Auth Method Selector - Mobile Optimized */}
           <div className="mb-6 sm:mb-8">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center px-2">
+            <h3 className="text-base sm:text-lg font-semibold text-black dark:text-white mb-4 text-center px-2">
               Choose your sign-in method
             </h3>
             <div className="space-y-3">
@@ -218,8 +217,8 @@ const Auth = () => {
                 }}
                 className={`w-full py-4 px-6 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-3 min-h-[52px] ${
                   authMethod === 'email'
-                    ? 'bg-purple-500 text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <Mail className="h-5 w-5 flex-shrink-0" />
@@ -234,8 +233,8 @@ const Auth = () => {
                 }}
                 className={`w-full py-4 px-6 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-3 min-h-[52px] ${
                   authMethod === 'phone'
-                    ? 'bg-purple-500 text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <Phone className="h-5 w-5 flex-shrink-0" />
@@ -251,8 +250,8 @@ const Auth = () => {
                 }}
                 className={`w-full py-4 px-6 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-3 min-h-[52px] ${
                   authMethod === 'google'
-                    ? 'bg-purple-500 text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24">
@@ -284,7 +283,7 @@ const Auth = () => {
             <form onSubmit={handleEmailAuth} className="space-y-5">
               {!isLogin && (
                 <div>
-                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-sm font-medium text-black dark:text-white">Full Name</Label>
                   <Input
                     id="fullName"
                     type="text"
@@ -292,13 +291,13 @@ const Auth = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required={!isLogin}
-                    className="mt-2 h-12 text-base"
+                    className="mt-2 h-12 text-base border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                   />
                 </div>
               )}
               
               <div>
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-black dark:text-white">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -306,12 +305,12 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="mt-2 h-12 text-base"
+                  className="mt-2 h-12 text-base border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                 />
               </div>
               
               <div>
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-black dark:text-white">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -319,13 +318,13 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="mt-2 h-12 text-base"
+                  className="mt-2 h-12 text-base border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-4 text-base min-h-[52px] font-medium"
+                className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 py-4 text-base min-h-[52px] font-medium"
                 disabled={loading}
               >
                 {loading ? (isLogin ? 'Signing in...' : 'Creating account...') : (isLogin ? 'Sign In' : 'Create Account')}
@@ -335,7 +334,7 @@ const Auth = () => {
             <form onSubmit={handlePhoneAuth} className="space-y-5">
               {!isLogin && !otpSent && (
                 <div>
-                  <Label htmlFor="phoneFullName" className="text-sm font-medium">Full Name</Label>
+                  <Label htmlFor="phoneFullName" className="text-sm font-medium text-black dark:text-white">Full Name</Label>
                   <Input
                     id="phoneFullName"
                     type="text"
@@ -343,21 +342,21 @@ const Auth = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required={!isLogin}
-                    className="mt-2 h-12 text-base"
+                    className="mt-2 h-12 text-base border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                   />
                 </div>
               )}
               
               <div>
-                <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                <Label htmlFor="phone" className="text-sm font-medium text-black dark:text-white">Phone Number</Label>
                 <div className="mt-2 flex space-x-2">
                   <Select value={countryCode} onValueChange={setCountryCode} disabled={otpSent}>
-                    <SelectTrigger className="w-24 h-12">
+                    <SelectTrigger className="w-24 h-12 border-gray-200 dark:border-gray-700 bg-white dark:bg-black">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
                       {countryCodes.map((country) => (
-                        <SelectItem key={country.code} value={country.code}>
+                        <SelectItem key={country.code} value={country.code} className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900">
                           <div className="flex items-center space-x-2">
                             <span>{country.flag}</span>
                             <span>{country.code}</span>
@@ -374,17 +373,17 @@ const Auth = () => {
                     onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                     required
                     disabled={otpSent}
-                    className="flex-1 h-12 text-base"
+                    className="flex-1 h-12 text-base border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Complete phone number: {countryCode}{phoneNumber}
                 </p>
               </div>
 
               {otpSent && (
                 <div>
-                  <Label htmlFor="otp" className="text-sm font-medium">Verification Code</Label>
+                  <Label htmlFor="otp" className="text-sm font-medium text-black dark:text-white">Verification Code</Label>
                   <Input
                     id="otp"
                     type="text"
@@ -393,14 +392,14 @@ const Auth = () => {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     required
                     maxLength={6}
-                    className="mt-2 h-12 text-base text-center tracking-widest"
+                    className="mt-2 h-12 text-base text-center tracking-widest border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white"
                   />
                 </div>
               )}
 
               <Button
                 type="submit"
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-4 text-base min-h-[52px] font-medium"
+                className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 py-4 text-base min-h-[52px] font-medium"
                 disabled={loading}
               >
                 {loading ? (otpSent ? 'Verifying...' : 'Sending code...') : (otpSent ? 'Verify Code' : 'Send Verification Code')}
@@ -411,7 +410,7 @@ const Auth = () => {
                   type="button"
                   variant="ghost"
                   onClick={resetPhoneAuth}
-                  className="w-full text-sm py-3 min-h-[44px]"
+                  className="w-full text-sm py-3 min-h-[44px] text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
                 >
                   Use different phone number
                 </Button>
@@ -420,8 +419,8 @@ const Auth = () => {
           )}
 
           {error && (
-            <Alert className="mt-5">
-              <AlertDescription className="text-sm leading-relaxed">{error}</AlertDescription>
+            <Alert className="mt-5 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+              <AlertDescription className="text-sm leading-relaxed text-red-800 dark:text-red-200">{error}</AlertDescription>
             </Alert>
           )}
 
@@ -433,7 +432,7 @@ const Auth = () => {
                 resetPhoneAuth();
                 setError(null);
               }}
-              className="text-purple-600 hover:text-purple-700 font-medium text-sm py-3 px-4 min-h-[44px] rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white font-medium text-sm py-3 px-4 min-h-[44px] rounded-md hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
