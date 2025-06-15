@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Users, Zap, Shield, Sparkles, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, Users, Zap, Shield, Sparkles, ArrowRight, Brain, BarChart3, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Landing = () => {
@@ -11,34 +11,34 @@ const Landing = () => {
 
   const features = [
     {
-      icon: Calendar,
-      title: 'Smart Scheduling',
-      description: 'AI-powered calendar that learns your preferences and optimizes your time'
+      icon: Brain,
+      title: 'AI Assistant',
+      description: 'Natural language event creation and smart scheduling suggestions powered by AI'
     },
     {
-      icon: Clock,
+      icon: BarChart3,
       title: 'Time Analytics',
-      description: 'Track your productivity patterns and get insights on your time usage'
+      description: 'Track your productivity patterns and get insights on your time usage with detailed reports'
     },
     {
-      icon: Users,
-      title: 'Team Collaboration',
-      description: 'Share calendars and coordinate with your team seamlessly'
+      icon: Heart,
+      title: 'Wellness Tracking',
+      description: 'Monitor work-life balance with intelligent wellness insights and recommendations'
     },
     {
       icon: Zap,
       title: 'Quick Actions',
-      description: 'Create events instantly with predefined templates and shortcuts'
+      description: 'Create events instantly with predefined templates and one-click shortcuts'
     },
     {
       icon: Shield,
-      title: 'Secure & Private',
-      description: 'Your data is encrypted and protected with enterprise-grade security'
+      title: 'Smart Notifications',
+      description: 'Intelligent reminder system with customizable notification preferences'
     },
     {
       icon: Sparkles,
-      title: 'Life Balance',
-      description: 'Monitor work-life balance with intelligent wellness tracking'
+      title: 'Custom Themes',
+      description: 'Personalize your calendar with beautiful themes and color customization'
     }
   ];
 
@@ -55,29 +55,37 @@ const Landing = () => {
               EventBridge
             </h1>
           </div>
-          <Button
-            onClick={() => navigate('/auth')}
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-          >
-            Get Started
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex space-x-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/features')}
+            >
+              Features
+            </Button>
+            <Button
+              onClick={() => navigate('/auth')}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+            >
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 text-center">
         <Badge variant="secondary" className="mb-6 animate-pulse">
-          ✨ The Future of Calendar Management
+          ✨ AI-Powered Calendar Management
         </Badge>
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Your Calendar's
+          Your Smart
           <br />
-          Best Friend
+          Calendar Assistant
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-          EventBridge transforms how you manage your time with AI-powered scheduling, 
-          intelligent insights, and seamless collaboration tools.
+          EventBridge combines AI intelligence with intuitive design to revolutionize how you manage time, 
+          boost productivity, and maintain work-life balance.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
@@ -94,7 +102,7 @@ const Landing = () => {
             onClick={() => navigate('/features')}
             className="text-lg px-8 py-4 rounded-xl border-2 hover:border-purple-300 transition-all duration-300"
           >
-            View Features
+            Explore Features
           </Button>
         </div>
       </section>
@@ -103,10 +111,10 @@ const Landing = () => {
       <section className="container mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4 text-gray-800 dark:text-gray-100">
-            Everything you need to master your time
+            Intelligent Features for Modern Productivity
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Powerful features designed to help you stay organized, productive, and balanced.
+            Experience the future of calendar management with AI-powered insights and automation.
           </p>
         </div>
         
@@ -134,10 +142,10 @@ const Landing = () => {
       <section className="container mx-auto px-6 py-20">
         <Card className="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-12 text-center border-0 shadow-2xl">
           <h2 className="text-4xl font-bold mb-6">
-            Ready to transform your productivity?
+            Ready to revolutionize your productivity?
           </h2>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of professionals who've revolutionized their time management with EventBridge.
+            Join thousands of professionals who've transformed their time management with EventBridge's AI-powered features.
           </p>
           <Button
             size="lg"
