@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Send, Clock, Zap, Heart, User, Loader2 } from 'lucide-react';
+import { Bot, Send, Clock, Zap, Heart, User, Loader2, Calendar, Target, BookOpen, Coffee, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
@@ -41,13 +41,29 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm your AI wellness assistant powered by Google Gemini. I can help you optimize your work-life balance, schedule breaks, and start focus sessions. How can I assist you today?`,
+      content: `Hello! I'm your AI assistant powered by Google Gemini. I can help you with calendar management, productivity tips, general questions, and much more. What would you like to know or discuss today?`,
       timestamp: new Date(),
-      suggestions: ['Schedule a break', 'Start focus session', 'Analyze my wellness', 'Give productivity tips']
+      suggestions: [
+        'Help me plan my day',
+        'Give me productivity tips', 
+        'What\'s the weather like?',
+        'Explain quantum physics',
+        'Schedule optimization tips',
+        'Random fun fact'
+      ]
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const quickActions = [
+    { icon: Clock, label: 'Schedule Break', action: () => onScheduleBreak?.() },
+    { icon: Zap, label: 'Focus Session', action: () => onStartFocusSession?.() },
+    { icon: Calendar, label: 'Plan My Day', action: () => handleSendMessage('Help me plan my day based on my calendar') },
+    { icon: Target, label: 'Set Goals', action: () => handleSendMessage('Help me set productive goals for today') },
+    { icon: BookOpen, label: 'Learn Something', action: () => handleSendMessage('Teach me something interesting') },
+    { icon: Coffee, label: 'Take a Break', action: () => handleSendMessage('I need break ideas') },
+  ];
 
   const handleSendMessage = async (message?: string) => {
     const messageToSend = message || inputMessage;
@@ -65,12 +81,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setIsLoading(true);
 
     try {
-      // Call our AI assistant edge function using Supabase
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           message: messageToSend,
           lifeBalanceData,
-          context: 'life_balance'
+          context: 'general_assistant'
         }
       });
 
@@ -88,11 +103,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Handle action suggestions
-      if (data.action === 'schedule_break' && onScheduleBreak) {
-        onScheduleBreak();
-      } else if (data.action === 'focus_session' && onStartFocusSession) {
-        onStartFocusSession();
+      // Only execute actions if explicitly requested, don't auto-trigger
+      if (data.action === 'schedule_break' && messageToSend.toLowerCase().includes('break')) {
+        // Only if user specifically asked for break
+      } else if (data.action === 'focus_session' && messageToSend.toLowerCase().includes('focus')) {
+        // Only if user specifically asked for focus
       }
 
     } catch (error) {
@@ -100,7 +115,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please make sure the AI service is properly configured.',
+        content: 'I apologize, but I encountered an error. Please try again or rephrase your question.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -109,42 +124,61 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  const getWellnessInsight = () => {
-    if (!lifeBalanceData) return null;
-
-    const { workLifeBalance, stressLevel, focusTime, wellnessScore } = lifeBalanceData;
-    
-    if (stressLevel > 70) {
-      return { type: 'warning', message: 'High stress detected! Consider taking a break.' };
-    } else if (focusTime < 50) {
-      return { type: 'info', message: 'Low focus time. Try a focus session!' };
-    } else if (wellnessScore > 80) {
-      return { type: 'success', message: 'Great wellness score! Keep it up!' };
-    }
-    
-    return null;
+  const clearChat = () => {
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: `Chat cleared! I'm here to help with anything you need. What would you like to discuss?`,
+      timestamp: new Date(),
+      suggestions: [
+        'Help me be more productive',
+        'Tell me a joke',
+        'Explain a complex topic',
+        'Help with my schedule'
+      ]
+    }]);
   };
-
-  const insight = getWellnessInsight();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl h-[600px] flex flex-col">
+      <DialogContent className="sm:max-w-2xl h-[700px] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Bot className="h-5 w-5 text-blue-600" />
-            <span>AI Wellness Assistant</span>
-            <Badge variant="outline" className="text-green-600">Powered by Gemini</Badge>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              <span>AI Assistant</span>
+              <Badge variant="outline" className="text-green-600">Gemini Powered</Badge>
+            </div>
+            <Button variant="outline" size="sm" onClick={clearChat}>
+              Clear Chat
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
-        {insight && (
-          <Card className={`p-3 mb-4 border-l-4 ${
-            insight.type === 'warning' ? 'border-l-red-500 bg-red-50' :
-            insight.type === 'success' ? 'border-l-green-500 bg-green-50' :
-            'border-l-blue-500 bg-blue-50'
-          }`}>
-            <p className="text-sm font-medium">{insight.message}</p>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {quickActions.map((action, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              size="sm"
+              onClick={action.action}
+              className="flex items-center space-x-1 text-xs"
+            >
+              <action.icon className="h-3 w-3" />
+              <span>{action.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        {/* Wellness Insight */}
+        {lifeBalanceData && (
+          <Card className="p-3 mb-4 bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-500">
+            <div className="flex items-center justify-between text-sm">
+              <span>📊 Wellness: {lifeBalanceData.wellnessScore}%</span>
+              <span>😌 Stress: {lifeBalanceData.stressLevel}%</span>
+              <span>🎯 Focus: {lifeBalanceData.focusTime}%</span>
+            </div>
           </Card>
         )}
 
@@ -155,23 +189,23 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
                   <div className={`flex items-start space-x-2 ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.role === 'user' ? 'bg-blue-500' : 'bg-gray-100'
+                      message.role === 'user' ? 'bg-blue-500' : 'bg-gradient-to-r from-purple-500 to-blue-500'
                     }`}>
                       {message.role === 'user' ? (
                         <User className="h-4 w-4 text-white" />
                       ) : (
-                        <Bot className="h-4 w-4 text-gray-600" />
+                        <Bot className="h-4 w-4 text-white" />
                       )}
                     </div>
-                    <div className={`px-4 py-2 rounded-lg ${
+                    <div className={`px-4 py-3 rounded-lg shadow-sm ${
                       message.role === 'user' 
                         ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-100 text-gray-900'
+                        : 'bg-white border border-gray-200 text-gray-900'
                     }`}>
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </p>
@@ -180,12 +214,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                   
                   {message.suggestions && message.suggestions.length > 0 && (
                     <div className="mt-2 space-y-1">
+                      <p className="text-xs text-gray-500 mb-1">💡 Try asking:</p>
                       {message.suggestions.map((suggestion, index) => (
                         <Button
                           key={index}
                           variant="outline"
                           size="sm"
-                          className="mr-2 mb-1 text-xs"
+                          className="mr-2 mb-1 text-xs hover:bg-blue-50"
                           onClick={() => handleSendMessage(suggestion)}
                         >
                           {suggestion}
@@ -200,12 +235,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             {isLoading && (
               <div className="flex justify-start">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-gray-600" />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg">
+                  <div className="bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                       <span className="text-sm">Thinking...</span>
                     </div>
                   </div>
@@ -215,25 +250,40 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           </div>
         </ScrollArea>
 
-        <div className="border-t pt-4">
-          <div className="flex space-x-2 mb-3">
+        <div className="border-t pt-4 space-y-3">
+          {/* Context Options */}
+          <div className="flex flex-wrap gap-1">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => onScheduleBreak?.()}
-              className="flex items-center space-x-1"
+              onClick={() => handleSendMessage('Help me with my calendar')}
+              className="text-xs"
             >
-              <Clock className="h-3 w-3" />
-              <span>Schedule Break</span>
+              📅 Calendar Help
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => onStartFocusSession?.()}
-              className="flex items-center space-x-1"
+              onClick={() => handleSendMessage('Give me a motivational quote')}
+              className="text-xs"
             >
-              <Zap className="h-3 w-3" />
-              <span>Focus Session</span>
+              ✨ Motivation
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleSendMessage('Explain something interesting')}
+              className="text-xs"
+            >
+              🧠 Learn
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleSendMessage('Help me solve a problem')}
+              className="text-xs"
+            >
+              🔧 Problem Solving
             </Button>
           </div>
           
@@ -241,13 +291,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask me about your wellness, productivity, or schedule..."
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Ask me anything - calendar help, general questions, productivity tips..."
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
               disabled={isLoading}
+              className="flex-1"
             />
             <Button 
               onClick={() => handleSendMessage()} 
               disabled={isLoading || !inputMessage.trim()}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
             >
               <Send className="h-4 w-4" />
             </Button>

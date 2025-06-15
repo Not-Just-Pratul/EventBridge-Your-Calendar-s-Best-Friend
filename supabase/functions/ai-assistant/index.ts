@@ -36,28 +36,47 @@ serve(async (req) => {
     }
 
     // Enhanced context for a more conversational AI assistant
-    let contextPrompt = `You are an advanced AI assistant for EventBridge, a sophisticated calendar and wellness application. You are friendly, helpful, and can assist with both calendar-related tasks and general questions. You have access to the user's real-time wellness and calendar metrics.
+    let contextPrompt = `You are an advanced AI assistant for EventBridge, a sophisticated calendar and wellness application. You are extremely friendly, helpful, and knowledgeable about virtually any topic. You can assist with:
 
-Your capabilities include:
-1. Calendar and scheduling assistance
-2. Wellness and productivity coaching
-3. General conversation and answering any questions
-4. Life balance optimization
-5. Stress management advice
-6. Focus and productivity tips
+🗓️ CALENDAR & PRODUCTIVITY:
+• Calendar management and scheduling
+• Time management and productivity tips
+• Work-life balance optimization
+• Stress reduction techniques
+• Goal setting and achievement
 
-You should be conversational, empathetic, and provide practical advice. You can answer questions about any topic, not just calendar or wellness related.`;
+🧠 GENERAL KNOWLEDGE:
+• Answer questions on any topic (science, history, technology, etc.)
+• Explain complex concepts in simple terms
+• Provide educational content
+• Help with problem-solving
+• Creative writing and brainstorming
+
+💬 CONVERSATION:
+• Casual conversations and small talk
+• Motivational quotes and inspiration
+• Jokes and entertainment
+• Personal advice and guidance
+• Learning new skills
+
+🔧 PRACTICAL HELP:
+• Step-by-step instructions
+• Recommendations and suggestions
+• Analysis and insights
+• Planning and organization
+
+You should be conversational, empathetic, knowledgeable, and engaging. Always provide helpful, accurate information regardless of the topic. If you don't know something, be honest about it but offer to help in other ways.`;
 
     if (lifeBalanceData) {
       const data = lifeBalanceData as LifeBalanceData;
-      contextPrompt += `\n\n📊 Current User Metrics:
+      contextPrompt += `\n\n📊 Current User Wellness Metrics:
 • Work-Life Balance: ${data.workLifeBalance}%
 • Stress Level: ${data.stressLevel}%
 • Focus Time: ${data.focusTime}%
 • Overall Wellness Score: ${data.wellnessScore}%`;
 
       if (data.workHours !== undefined) {
-        contextPrompt += `\n\n📅 Weekly Time Analysis:
+        contextPrompt += `\n\n📅 Weekly Schedule Overview:
 • Work: ${data.workHours}h
 • Personal: ${data.personalHours}h
 • Health/Wellness: ${data.healthHours}h
@@ -67,47 +86,26 @@ You should be conversational, empathetic, and provide practical advice. You can 
 • Upcoming Deadlines: ${data.upcomingDeadlines}`;
       }
 
-      // Context-specific guidance
-      if (context === 'calendar_analysis') {
-        contextPrompt += `\n\n🎯 TASK: Provide detailed calendar pattern analysis and specific scheduling recommendations.`;
-      } else if (context === 'schedule_optimization') {
-        contextPrompt += `\n\n🎯 TASK: Focus on concrete scheduling optimization with specific time blocks.`;
-      } else if (context === 'ideal_schedule_generation') {
-        contextPrompt += `\n\n🎯 TASK: Generate a comprehensive daily schedule template with specific times for optimal wellness.`;
-      }
-
-      // Smart recommendations based on current metrics
+      // Provide gentle wellness insights when relevant
       if (data.stressLevel > 70) {
-        contextPrompt += `\n\n⚠️ PRIORITY: High stress detected (${data.stressLevel}%). Recommend immediate stress relief strategies.`;
-      }
-      if (data.focusTime < 50) {
-        contextPrompt += `\n\n💡 SUGGESTION: Low focus time (${data.focusTime}%). Suggest productivity enhancement techniques.`;
+        contextPrompt += `\n\n💡 Note: User has elevated stress levels (${data.stressLevel}%). Consider gentle wellness suggestions when appropriate.`;
       }
       if (data.wellnessScore > 80) {
-        contextPrompt += `\n\n✅ POSITIVE: Excellent wellness score (${data.wellnessScore}%). Acknowledge and encourage continuation.`;
-      }
-      if (data.freeTime && data.freeTime < 10) {
-        contextPrompt += `\n\n⏰ CONCERN: Limited free time (${data.freeTime}h). Recommend work-life balance improvements.`;
+        contextPrompt += `\n\n✅ Positive: User has excellent wellness score (${data.wellnessScore}%). Acknowledge their good habits when relevant.`;
       }
     }
 
-    contextPrompt += `\n\n🛠️ Available Actions:
-You can suggest these actions when appropriate:
-• "schedule_break" - for immediate stress relief or wellness breaks
-• "focus_session" - for deep work or concentration periods
-• "schedule_optimization" - for improving time management
-• "calendar_analysis" - for reviewing patterns and habits
-
-Guidelines:
+    contextPrompt += `\n\n🎯 Response Guidelines:
 • Be conversational and friendly
-• Provide specific, actionable advice
-• Include exact times when suggesting schedule changes
-• Answer any questions the user has, not just calendar-related
-• Be empathetic and supportive
+• Answer ANY question the user asks, not just calendar-related
+• Provide specific, actionable advice when relevant
 • Use emojis sparingly but effectively
-• Keep responses helpful but concise
+• Keep responses helpful and engaging
+• If discussing calendar/productivity, include exact times or specific suggestions
+• Be honest if you don't know something
+• Encourage curiosity and learning
 
-Remember: You can discuss any topic the user brings up, while also being their wellness and productivity coach.`;
+Remember: You're a knowledgeable assistant who can discuss anything - from quantum physics to cooking recipes, from productivity tips to philosophical questions. Be helpful, accurate, and engaging!`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -136,31 +134,42 @@ Remember: You can discuss any topic the user brings up, while also being their w
     }
 
     const data = await response.json();
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not generate a response.';
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not generate a response. Please try asking your question differently.';
 
-    // Enhanced action detection and suggestions
-    let action = null;
+    // Generate contextual suggestions based on response content
     let suggestions = [];
-
     const responseLower = aiResponse.toLowerCase();
+    const messageLower = message.toLowerCase();
     
-    if (responseLower.includes('break') || responseLower.includes('rest') || responseLower.includes('stress') || responseLower.includes('relax')) {
-      action = 'schedule_break';
-      suggestions = ['Schedule 15-min break', 'Take a wellness walk', 'Practice mindfulness', 'Stretch and breathe'];
-    } else if (responseLower.includes('focus') || responseLower.includes('concentrate') || responseLower.includes('deep work') || responseLower.includes('productivity')) {
-      action = 'focus_session';
-      suggestions = ['Start 25-min focus session', 'Enable do-not-disturb', 'Block calendar for deep work', 'Use Pomodoro technique'];
-    } else if (responseLower.includes('schedule') || responseLower.includes('optimize') || responseLower.includes('plan') || responseLower.includes('calendar')) {
-      suggestions = ['Optimize my schedule', 'Analyze calendar patterns', 'Create ideal routine', 'Review time allocation'];
+    // Context-aware suggestions
+    if (messageLower.includes('calendar') || messageLower.includes('schedule')) {
+      suggestions = ['Optimize my daily schedule', 'Help me plan tomorrow', 'Time management tips', 'How to reduce scheduling conflicts'];
+    } else if (messageLower.includes('stress') || messageLower.includes('wellness')) {
+      suggestions = ['Quick stress relief techniques', 'Plan a wellness break', 'Work-life balance tips', 'Meditation recommendations'];
+    } else if (messageLower.includes('productivity') || messageLower.includes('focus')) {
+      suggestions = ['Deep work strategies', 'Eliminate distractions', 'Energy management tips', 'Goal setting techniques'];
+    } else if (messageLower.includes('learn') || messageLower.includes('explain')) {
+      suggestions = ['Teach me something new', 'Explain a complex topic simply', 'Recommend learning resources', 'Study techniques'];
+    } else if (messageLower.includes('motivation') || messageLower.includes('inspire')) {
+      suggestions = ['Give me a motivational quote', 'Success strategies', 'Overcoming challenges', 'Building good habits'];
     } else {
       // General conversation suggestions
-      suggestions = ['How can I improve productivity?', 'Help me reduce stress', 'Analyze my wellness data', 'What should I focus on today?'];
+      suggestions = [
+        'Help me plan my day',
+        'Tell me something interesting',
+        'Give me productivity tips',
+        'Explain a science concept',
+        'Motivate me',
+        'Solve a problem for me'
+      ];
     }
+
+    // Shuffle and limit suggestions
+    suggestions = suggestions.sort(() => Math.random() - 0.5).slice(0, 4);
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
-      action,
-      suggestions: suggestions.slice(0, 4)
+      suggestions: suggestions
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -169,7 +178,7 @@ Remember: You can discuss any topic the user brings up, while also being their w
     console.error('Error in ai-assistant function:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      response: 'I apologize, but I encountered an error. Please make sure the AI service is properly configured.'
+      response: 'I apologize, but I encountered an error. Please make sure the AI service is properly configured and try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
