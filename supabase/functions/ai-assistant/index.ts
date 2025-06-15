@@ -50,7 +50,8 @@ Based on these metrics, provide personalized advice. If stress is high (>70%), s
 
 Keep responses concise, helpful, and encouraging. Always consider the user's current metrics when giving advice.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    // Use the correct Gemini API endpoint
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,6 +72,8 @@ Keep responses concise, helpful, and encouraging. Always consider the user's cur
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini API error: ${response.status} - ${errorText}`);
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
