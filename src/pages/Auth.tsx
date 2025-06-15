@@ -94,40 +94,40 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-bg-premium dark:gradient-bg-premium-dark flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-6 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="mb-6 text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 btn-gradient-premium rounded-xl flex items-center justify-center shadow-premium-lg">
-              <Calendar className="h-6 w-6 text-white" />
+            <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-premium-lg">
+              <Calendar className="h-6 w-6 text-white dark:text-black" />
             </div>
-            <h1 className="text-3xl font-bold text-gradient-premium">
+            <h1 className="text-3xl font-bold text-black dark:text-white">
               EventBridge
             </h1>
           </div>
           
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-gray-600 dark:text-gray-400">
             {isLogin ? 'Sign in to your account' : 'Get started with EventBridge'}
           </p>
         </div>
 
-        <Card className="p-8 shadow-premium-xl border border-slate-200 dark:border-slate-800 glass-effect">
+        <Card className="p-8 shadow-premium-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
           <form onSubmit={handleAuth} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
+                <Label htmlFor="fullName" className="flex items-center space-x-2 text-black dark:text-white font-medium">
                   <User className="h-4 w-4" />
                   <span>Full Name</span>
                 </Label>
@@ -138,13 +138,13 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
-                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
+                  className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
+              <Label htmlFor="email" className="flex items-center space-x-2 text-black dark:text-white font-medium">
                 <Mail className="h-4 w-4" />
                 <span>Email</span>
               </Label>
@@ -155,12 +155,12 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
+                className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 font-medium">
+              <Label htmlFor="password" className="flex items-center space-x-2 text-black dark:text-white font-medium">
                 <Lock className="h-4 w-4" />
                 <span>Password</span>
               </Label>
@@ -172,13 +172,13 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="border-2 border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 bg-white/50 dark:bg-slate-800/50 focus-premium"
+                className="border-2 border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white bg-white dark:bg-black text-black dark:text-white"
               />
             </div>
 
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800">
-                <AlertDescription className="text-red-800 dark:text-red-200">
+              <Alert className="border-gray-200 bg-gray-50 dark:bg-gray-950 dark:border-gray-800">
+                <AlertDescription className="text-black dark:text-white">
                   {error}
                 </AlertDescription>
               </Alert>
@@ -186,7 +186,7 @@ const Auth = () => {
 
             <Button
               type="submit"
-              className="w-full btn-gradient-premium py-3 rounded-xl shadow-premium-lg hover:shadow-premium-xl transition-all duration-300 font-medium"
+              className="w-full bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black py-3 rounded-xl shadow-premium-lg hover:shadow-premium-xl transition-all duration-300 font-medium"
               disabled={loading}
             >
               {loading ? (
@@ -204,7 +204,7 @@ const Auth = () => {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors"
+              className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white font-medium transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
