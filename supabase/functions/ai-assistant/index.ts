@@ -26,19 +26,26 @@ interface LifeBalanceData {
   upcomingDeadlines?: number;
 }
 
+interface ConversationMemory {
+  userPreferences: string[];
+  recentTopics: string[];
+  createdEvents: any[];
+  lastInteraction: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { message, lifeBalanceData, context, userId } = await req.json();
+    const { message, lifeBalanceData, context, userId, conversationHistory } = await req.json();
 
     if (!geminiApiKey) {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Initialize Supabase client for event creation
+    // Initialize Supabase client
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
     // Get current date and time information
@@ -49,7 +56,6 @@ serve(async (req) => {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Format current date for AI context
     const currentDateString = now.toISOString();
     const currentDateReadable = now.toLocaleDateString('en-US', { 
       weekday: 'long', 
@@ -63,95 +69,133 @@ serve(async (req) => {
       hour12: true 
     });
 
-    // Enhanced context for AI with calendar control capabilities and correct date handling
-    let contextPrompt = `You are an advanced AI assistant for EventBridge with FULL CALENDAR CONTROL. You can:
+    // Build conversation memory from history
+    let conversationMemory: ConversationMemory = {
+      userPreferences: [],
+      recentTopics: [],
+      createdEvents: [],
+      lastInteraction: ''
+    };
 
-🗓️ CALENDAR MANAGEMENT:
-• Create, modify, and delete events directly
-• Schedule meetings and appointments
-• Set reminders and recurring events
-• Optimize schedules and resolve conflicts
-• Analyze calendar patterns
+    if (conversationHistory && conversationHistory.length > 0) {
+      // Extract key information from conversation history
+      const recentMessages = conversationHistory.slice(-10); // Last 10 messages
+      
+      // Analyze user patterns and preferences
+      const userMessages = recentMessages.filter((msg: any) => msg.role === 'user');
+      const assistantMessages = recentMessages.filter((msg: any) => msg.role === 'assistant');
+      
+      // Extract topics and preferences
+      userMessages.forEach((msg: any) => {
+        const content = msg.content.toLowerCase();
+        if (content.includes('meeting')) conversationMemory.recentTopics.push('meetings');
+        if (content.includes('focus') || content.includes('deep work')) conversationMemory.recentTopics.push('focus_work');
+        if (content.includes('wellness') || content.includes('break')) conversationMemory.recentTopics.push('wellness');
+        if (content.includes('gym') || content.includes('exercise')) conversationMemory.recentTopics.push('fitness');
+        if (content.includes('morning')) conversationMemory.userPreferences.push('morning_person');
+        if (content.includes('afternoon') || content.includes('evening')) conversationMemory.userPreferences.push('afternoon_person');
+      });
 
-⏰ CURRENT DATE & TIME INFORMATION:
-• Today is: ${currentDateReadable}
-• Current time: ${currentTimeReadable}
-• Current year: ${currentYear}
-• ISO format: ${currentDateString}
+      // Track created events
+      assistantMessages.forEach((msg: any) => {
+        if (msg.createdEvent) {
+          conversationMemory.createdEvents.push(msg.createdEvent);
+        }
+      });
 
-📝 EVENT CREATION RULES:
-When users mention scheduling, planning, or time-related requests, you can create events directly by responding with a special JSON format.
-
-CRITICAL DATE REQUIREMENTS:
-• ALWAYS use ${currentYear} as the year (NOT 2024 or any other year)
-• When user says "today", use: ${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}
-• When user says "tomorrow", add 1 day to today's date
-• When user says "next week", add 7 days to today's date
-• ALL dates MUST be in ISO format: YYYY-MM-DDTHH:MM:SS.000Z
-• Default to 1-hour duration if not specified
-• Use reasonable times (9 AM - 6 PM for work, evenings for personal)
-
-EVENT_CREATE FORMAT:
-{
-  "title": "Event Title",
-  "description": "Event description",
-  "start_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
-  "end_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
-  "location": "Optional location",
-  "color": "blue|purple|green|orange|red|pink"
-}
-
-EXAMPLES OF CORRECT DATE HANDLING:
-• "Schedule a meeting today at 2pm" → start_time: "${currentYear}-${currentMonth.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}T14:00:00.000Z"
-• "Book dentist appointment tomorrow at 10am" → start_time: "${currentYear}-${currentMonth.toString().padStart(2, '0')}-${(currentDay + 1).toString().padStart(2, '0')}T10:00:00.000Z"
-• "Meeting next Monday" → Calculate next Monday from today and use ${currentYear}
-
-🧠 GENERAL CAPABILITIES:
-• Answer questions on any topic
-• Provide explanations and tutorials
-• Help with productivity and wellness
-• Creative writing and brainstorming
-• Problem-solving and analysis
-
-💬 INTERACTION STYLE:
-• Be conversational and proactive about calendar management
-• Suggest optimal times for events
-• Offer to create events when users mention activities
-• Use natural language to confirm event details
-• ALWAYS confirm the date you're using when creating events`;
-
-    if (lifeBalanceData) {
-      const data = lifeBalanceData as LifeBalanceData;
-      contextPrompt += `\n\n📊 Current User Wellness Metrics:
-• Work-Life Balance: ${data.workLifeBalance}%
-• Stress Level: ${data.stressLevel}%
-• Focus Time: ${data.focusTime}%
-• Overall Wellness Score: ${data.wellnessScore}%`;
-
-      if (data.workHours !== undefined) {
-        contextPrompt += `\n\n📅 Weekly Schedule Overview:
-• Work: ${data.workHours}h
-• Personal: ${data.personalHours}h
-• Health/Wellness: ${data.healthHours}h
-• Social: ${data.socialHours}h
-• Free Time: ${data.freeTime}h
-• Avg Event Duration: ${data.averageEventDuration}h
-• Upcoming Deadlines: ${data.upcomingDeadlines}`;
+      if (userMessages.length > 0) {
+        conversationMemory.lastInteraction = userMessages[userMessages.length - 1].content;
       }
     }
 
-    contextPrompt += `\n\n🎯 CALENDAR CONTROL EXAMPLES:
-• "Schedule a meeting tomorrow at 2pm" → Create event for ${new Date(now.getTime() + 24*60*60*1000).toDateString()} at 2pm
-• "I need to go to the gym" → Suggest time and create event for ${currentYear}
-• "Block time for focused work" → Create focus block for today or specified date in ${currentYear}
-• "Plan my day" → Analyze schedule and create optimized events for ${currentYear}
+    // Enhanced context with memory and direct action focus
+    let contextPrompt = `You are an advanced AI calendar assistant with FULL CALENDAR CONTROL and CONVERSATION MEMORY. You are direct, proactive, and remember user preferences.
+
+🧠 CONVERSATION MEMORY:
+${conversationMemory.recentTopics.length > 0 ? `• Recent topics: ${[...new Set(conversationMemory.recentTopics)].join(', ')}` : ''}
+${conversationMemory.userPreferences.length > 0 ? `• User preferences: ${[...new Set(conversationMemory.userPreferences)].join(', ')}` : ''}
+${conversationMemory.createdEvents.length > 0 ? `• Recent events created: ${conversationMemory.createdEvents.map(e => e.title).join(', ')}` : ''}
+${conversationMemory.lastInteraction ? `• Last interaction: "${conversationMemory.lastInteraction}"` : ''}
+
+⚡ DIRECT ACTION PERSONALITY:
+• Be proactive - suggest and create events immediately
+• Don't ask unnecessary questions - make reasonable assumptions
+• Use conversation memory to understand user patterns
+• Default to smart scheduling based on context
+• Confirm actions with brief, clear statements
+
+🗓️ CALENDAR CONTROL CAPABILITIES:
+• Create events instantly from natural language
+• Schedule optimal times based on user patterns
+• Resolve conflicts automatically
+• Set appropriate durations and locations
+• Use smart defaults for recurring patterns
+
+⏰ CURRENT DATE & TIME:
+• Today: ${currentDateReadable} at ${currentTimeReadable}
+• Current year: ${currentYear} (ALWAYS use this year)
+• ISO format: ${currentDateString}
+
+📝 EVENT CREATION - DIRECT FORMAT:
+When users mention scheduling, immediately create events using:
+EVENT_CREATE:{
+  "title": "Event Title",
+  "description": "Brief description",
+  "start_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
+  "end_time": "${currentYear}-MM-DDTHH:MM:SS.000Z",
+  "location": "Location if mentioned",
+  "color": "blue|purple|green|orange|red|pink"
+}
+
+⚡ SMART DEFAULTS:
+• Work meetings: 1 hour, 9 AM - 6 PM weekdays
+• Focus work: 2 hours, morning or afternoon
+• Wellness/breaks: 30 minutes, between work blocks
+• Personal activities: 1 hour, evenings or weekends
+• Gym/exercise: 1 hour, morning or evening
+
+🎯 BEHAVIOR RULES:
+• Act immediately on scheduling requests
+• Use memory to make better suggestions
+• Don't repeat questions already answered
+• Assume reasonable defaults
+• Be conversational but efficient
+• Always confirm what you created`;
+
+    if (lifeBalanceData) {
+      const data = lifeBalanceData as LifeBalanceData;
+      contextPrompt += `\n\n📊 CURRENT WELLNESS CONTEXT:
+• Work-Life Balance: ${data.workLifeBalance}% • Stress: ${data.stressLevel}%
+• Focus Time: ${data.focusTime}% • Wellness Score: ${data.wellnessScore}%`;
+
+      if (data.workHours !== undefined) {
+        contextPrompt += `\n• Weekly: Work ${data.workHours}h | Personal ${data.personalHours}h | Health ${data.healthHours}h`;
+      }
+    }
+
+    contextPrompt += `\n\n💡 EXAMPLES OF DIRECT ACTION:
+User: "I need to meet with the team tomorrow"
+You: "Creating team meeting for tomorrow 2-3 PM" + EVENT_CREATE
+
+User: "Block some focus time" 
+You: "Blocking 2 hours of focus time for this afternoon" + EVENT_CREATE
+
+User: "Gym session"
+You: "Scheduling 1-hour gym session for this evening" + EVENT_CREATE
 
 REMEMBER: 
-- Current year is ${currentYear}
-- Today is ${currentDateReadable}
-- NEVER use 2024 or any year other than ${currentYear}
-- Always confirm dates when creating events
-- Be proactive in creating events when users mention activities!`;
+- Current year is ${currentYear} - NEVER use any other year
+- Be direct and proactive - don't ask what you can assume
+- Use conversation memory to make smart decisions
+- Create events immediately when requested`;
+
+    // Build conversation context from history for API
+    let conversationContext = '';
+    if (conversationHistory && conversationHistory.length > 0) {
+      const recentHistory = conversationHistory.slice(-6); // Last 6 messages for context
+      conversationContext = '\n\nRECENT CONVERSATION:\n' + 
+        recentHistory.map((msg: any) => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n');
+    }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -161,14 +205,14 @@ REMEMBER:
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `${contextPrompt}\n\nUser: ${message}`
+            text: `${contextPrompt}${conversationContext}\n\nUSER: ${message}`
           }]
         }],
         generationConfig: {
-          temperature: 0.8,
+          temperature: 0.7,
           topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
+          topP: 0.9,
+          maxOutputTokens: 1024,
         }
       }),
     });
@@ -190,23 +234,21 @@ REMEMBER:
       try {
         const eventData = JSON.parse(eventCreateMatch[1]);
         
-        // Validate dates are in current year
+        // Validate and correct dates
         const startDate = new Date(eventData.start_time);
         const endDate = new Date(eventData.end_time);
         
         if (startDate.getFullYear() !== currentYear) {
-          console.warn(`Event start_time year corrected from ${startDate.getFullYear()} to ${currentYear}`);
           startDate.setFullYear(currentYear);
           eventData.start_time = startDate.toISOString();
         }
         
         if (endDate.getFullYear() !== currentYear) {
-          console.warn(`Event end_time year corrected from ${endDate.getFullYear()} to ${currentYear}`);
           endDate.setFullYear(currentYear);
           eventData.end_time = endDate.toISOString();
         }
         
-        // Create the event in Supabase
+        // Create the event
         const { data: newEvent, error } = await supabase
           .from('events')
           .insert([{
@@ -225,24 +267,23 @@ REMEMBER:
           console.error('Error creating event:', error);
         } else {
           createdEvent = newEvent;
-          // Remove the EVENT_CREATE instruction from the response
+          // Clean up the response
           aiResponse = aiResponse.replace(/EVENT_CREATE:\s*{[^}]+}/, '').trim();
           
-          // Add confirmation to the response with correct date
-          const eventDate = new Date(newEvent.start_time).toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-          const eventTime = new Date(newEvent.start_time).toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true 
-          });
-          
-          if (!aiResponse.includes('created') && !aiResponse.includes('scheduled')) {
-            aiResponse += `\n\n✅ Perfect! I've created the event "${eventData.title}" for ${eventDate} at ${eventTime}.`;
+          // Add brief confirmation if not already mentioned
+          if (!aiResponse.toLowerCase().includes('created') && !aiResponse.toLowerCase().includes('scheduled')) {
+            const eventDate = new Date(newEvent.start_time).toLocaleDateString('en-US', { 
+              weekday: 'short', 
+              month: 'short', 
+              day: 'numeric' 
+            });
+            const eventTime = new Date(newEvent.start_time).toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit', 
+              hour12: true 
+            });
+            
+            aiResponse += `\n\n✅ Created "${eventData.title}" for ${eventDate} at ${eventTime}`;
           }
         }
       } catch (error) {
@@ -250,58 +291,34 @@ REMEMBER:
       }
     }
 
-    // Generate contextual suggestions
+    // Generate contextual suggestions based on conversation memory and patterns
     let suggestions = [];
-    const responseLower = aiResponse.toLowerCase();
     const messageLower = message.toLowerCase();
+    const recentTopics = conversationMemory.recentTopics;
     
-    // Calendar-focused suggestions
-    if (messageLower.includes('schedule') || messageLower.includes('calendar') || messageLower.includes('meeting')) {
-      suggestions = [
-        'Schedule a focus session',
-        'Plan my week optimally',
-        'Create a recurring meeting',
-        'Block time for deep work',
-        'Schedule a wellness break',
-        'Optimize my schedule'
-      ];
+    if (recentTopics.includes('meetings')) {
+      suggestions = ['Schedule follow-up meeting', 'Block prep time', 'Add buffer time', 'Create recurring meeting'];
+    } else if (recentTopics.includes('focus_work')) {
+      suggestions = ['Schedule deep work block', 'Plan focused morning', 'Block distraction-free time', 'Create study session'];
+    } else if (recentTopics.includes('wellness')) {
+      suggestions = ['Schedule wellness break', 'Plan exercise time', 'Add meditation session', 'Block lunch break'];
     } else if (messageLower.includes('today') || messageLower.includes('tomorrow')) {
-      suggestions = [
-        'What should I focus on today?',
-        'Schedule my most important task',
-        'Plan a productive morning',
-        'Block time for priorities',
-        'Create a balanced schedule',
-        'Add a wellness activity'
-      ];
+      suggestions = ['Plan my day', 'Schedule priorities', 'Block focus time', 'Add break time'];
     } else if (createdEvent) {
-      suggestions = [
-        'Create another event',
-        'Schedule a follow-up meeting',
-        'Plan preparation time',
-        'Add a buffer after this event',
-        'Set a reminder for this',
-        'Optimize my day around this'
-      ];
+      suggestions = ['Schedule another event', 'Add preparation time', 'Plan follow-up', 'Create reminder'];
     } else {
-      suggestions = [
-        'Schedule something for me',
-        'Plan my ideal day',
-        'Create a focus block',
-        'Add a wellness activity',
-        'Schedule a meeting',
-        'Optimize my calendar'
-      ];
+      suggestions = ['Schedule meeting', 'Block focus time', 'Plan workout', 'Add break time'];
     }
 
-    // Shuffle and limit suggestions
-    suggestions = suggestions.sort(() => Math.random() - 0.5).slice(0, 4);
+    // Limit and randomize suggestions
+    suggestions = suggestions.slice(0, 3);
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
       suggestions: suggestions,
       createdEvent: createdEvent,
-      action: createdEvent ? 'event_created' : null
+      action: createdEvent ? 'event_created' : null,
+      conversationMemory: conversationMemory
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -310,7 +327,7 @@ REMEMBER:
     console.error('Error in ai-assistant function:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      response: 'I apologize, but I encountered an error. Please make sure the AI service is properly configured and try again.'
+      response: 'I encountered an error. Please try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
