@@ -5,18 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Mail, Lock, User, ArrowLeft, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,7 +34,7 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -75,6 +79,57 @@ const Auth = () => {
     }
   };
 
+  const handlePhoneAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!otpSent) {
+        // Send OTP
+        const { error } = await supabase.auth.signInWithOtp({
+          phone,
+          options: {
+            data: !isLogin ? { full_name: fullName } : undefined
+          }
+        });
+        if (error) throw error;
+        setOtpSent(true);
+        toast({
+          title: "OTP Sent!",
+          description: "Please check your phone for the verification code.",
+        });
+      } else {
+        // Verify OTP
+        const { error } = await supabase.auth.verifyOtp({
+          phone,
+          token: otp,
+          type: 'sms'
+        });
+        if (error) throw error;
+        toast({
+          title: "Welcome!",
+          description: "You've been successfully authenticated.",
+        });
+      }
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPhoneAuth = () => {
+    setOtpSent(false);
+    setOtp('');
+    setError(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
@@ -106,85 +161,207 @@ const Auth = () => {
         </div>
 
         <Card className="p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-          <form onSubmit={handleAuth} className="space-y-6">
-            {!isLogin && (
+          {/* Auth Method Selector */}
+          <div className="flex space-x-2 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod('email');
+                resetPhoneAuth();
+              }}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                authMethod === 'email'
+                  ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <Mail className="h-4 w-4 inline mr-2" />
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod('phone');
+                setError(null);
+              }}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                authMethod === 'phone'
+                  ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <Phone className="h-4 w-4 inline mr-2" />
+              Phone
+            </button>
+          </div>
+
+          {authMethod === 'email' ? (
+            <form onSubmit={handleEmailAuth} className="space-y-6">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>Full Name</span>
+                  </Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required={!isLogin}
+                    className="border-2 focus:border-purple-300"
+                  />
+                </div>
+              )}
+              
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Full Name</span>
+                <Label htmlFor="email" className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4" />
+                  <span>Email</span>
                 </Label>
                 <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required={!isLogin}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="border-2 focus:border-purple-300"
                 />
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-2">
-                <Mail className="h-4 w-4" />
-                <span>Email</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-2 focus:border-purple-300"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center space-x-2">
-                <Lock className="h-4 w-4" />
-                <span>Password</span>
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-2 focus:border-purple-300"
-              />
-            </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center space-x-2">
+                  <Lock className="h-4 w-4" />
+                  <span>Password</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="border-2 focus:border-purple-300"
+                />
+              </div>
 
-            {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
-                <AlertDescription className="text-red-800 dark:text-red-200">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
+                  </div>
+                ) : (
+                  isLogin ? 'Sign In' : 'Create Account'
+                )}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handlePhoneAuth} className="space-y-6">
+              {!isLogin && !otpSent && (
+                <div className="space-y-2">
+                  <Label htmlFor="phoneFullName" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>Full Name</span>
+                  </Label>
+                  <Input
+                    id="phoneFullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required={!isLogin}
+                    className="border-2 focus:border-purple-300"
+                  />
                 </div>
-              ) : (
-                isLogin ? 'Sign In' : 'Create Account'
               )}
-            </Button>
-          </form>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4" />
+                  <span>Phone Number</span>
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+1234567890"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  disabled={otpSent}
+                  className="border-2 focus:border-purple-300"
+                />
+              </div>
+
+              {otpSent && (
+                <div className="space-y-2">
+                  <Label htmlFor="otp" className="flex items-center space-x-2">
+                    <Lock className="h-4 w-4" />
+                    <span>Verification Code</span>
+                  </Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                    maxLength={6}
+                    className="border-2 focus:border-purple-300"
+                  />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>{otpSent ? 'Verifying...' : 'Sending code...'}</span>
+                  </div>
+                ) : (
+                  otpSent ? 'Verify Code' : 'Send Verification Code'
+                )}
+              </Button>
+
+              {otpSent && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={resetPhoneAuth}
+                  className="w-full text-purple-600 hover:text-purple-700"
+                >
+                  Use different phone number
+                </Button>
+              )}
+            </form>
+          )}
+
+          {error && (
+            <Alert className="border-red-200 bg-red-50 dark:bg-red-950 mt-4">
+              <AlertDescription className="text-red-800 dark:text-red-200">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                resetPhoneAuth();
+                setError(null);
+              }}
               className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
