@@ -21,6 +21,16 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/calendar');
+      }
+    };
+    
+    checkAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate('/calendar');
@@ -42,6 +52,7 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+        
         toast({
           title: "Welcome back!",
           description: "You've been successfully signed in.",
@@ -57,13 +68,16 @@ const Auth = () => {
             }
           }
         });
+        
         if (error) throw error;
+        
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       setError(error.message);
       toast({
         variant: "destructive",
@@ -76,40 +90,40 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-6 text-gray-600 hover:text-gray-800"
+            className="mb-6 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <Calendar className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
               EventBridge
             </h1>
           </div>
           
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-slate-600 dark:text-slate-400">
             {isLogin ? 'Sign in to your account' : 'Get started with EventBridge'}
           </p>
         </div>
 
-        <Card className="p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <Card className="p-8 shadow-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <form onSubmit={handleAuth} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center space-x-2">
+                <Label htmlFor="fullName" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                   <User className="h-4 w-4" />
                   <span>Full Name</span>
                 </Label>
@@ -120,13 +134,13 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
-                  className="border-2 focus:border-purple-300"
+                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-2">
+              <Label htmlFor="email" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                 <Mail className="h-4 w-4" />
                 <span>Email</span>
               </Label>
@@ -137,12 +151,12 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-2 focus:border-purple-300"
+                className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center space-x-2">
+              <Label htmlFor="password" className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                 <Lock className="h-4 w-4" />
                 <span>Password</span>
               </Label>
@@ -153,12 +167,13 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border-2 focus:border-purple-300"
+                minLength={6}
+                className="border-2 border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 bg-white dark:bg-slate-800"
               />
             </div>
 
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800">
                 <AlertDescription className="text-red-800 dark:text-red-200">
                   {error}
                 </AlertDescription>
@@ -167,7 +182,7 @@ const Auth = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               disabled={loading}
             >
               {loading ? (
@@ -185,7 +200,7 @@ const Auth = () => {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
