@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone' | 'google'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -124,6 +124,29 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/calendar`,
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: error.message,
+      });
+      setLoading(false);
+    }
+  };
+
   const resetPhoneAuth = () => {
     setOtpSent(false);
     setOtp('');
@@ -162,20 +185,20 @@ const Auth = () => {
 
         <Card className="p-8 shadow-2xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           {/* Auth Method Selector */}
-          <div className="flex space-x-2 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="grid grid-cols-3 gap-2 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
               type="button"
               onClick={() => {
                 setAuthMethod('email');
                 resetPhoneAuth();
               }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-all ${
                 authMethod === 'email'
                   ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400'
               }`}
             >
-              <Mail className="h-4 w-4 inline mr-2" />
+              <Mail className="h-4 w-4 inline mr-1" />
               Email
             </button>
             <button
@@ -184,18 +207,68 @@ const Auth = () => {
                 setAuthMethod('phone');
                 setError(null);
               }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-all ${
                 authMethod === 'phone'
                   ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400'
               }`}
             >
-              <Phone className="h-4 w-4 inline mr-2" />
+              <Phone className="h-4 w-4 inline mr-1" />
               Phone
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod('google');
+                setError(null);
+                resetPhoneAuth();
+              }}
+              className={`py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                authMethod === 'google'
+                  ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <svg className="h-4 w-4 inline mr-1" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Google
             </button>
           </div>
 
-          {authMethod === 'email' ? (
+          {authMethod === 'google' ? (
+            <div className="space-y-6">
+              <div className="text-center text-gray-600 dark:text-gray-400 text-sm">
+                {isLogin ? 'Sign in with your Google account' : 'Create account with Google'}
+              </div>
+              
+              <Button
+                onClick={handleGoogleAuth}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Connecting...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                  </div>
+                )}
+              </Button>
+            </div>
+          ) : authMethod === 'email' ? (
             <form onSubmit={handleEmailAuth} className="space-y-6">
               {!isLogin && (
                 <div className="space-y-2">
@@ -354,19 +427,21 @@ const Auth = () => {
             </Alert>
           )}
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                resetPhoneAuth();
-                setError(null);
-              }}
-              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-            </button>
-          </div>
+          {authMethod !== 'google' && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  resetPhoneAuth();
+                  setError(null);
+                }}
+                className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+              >
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            </div>
+          )}
         </Card>
       </div>
     </div>
