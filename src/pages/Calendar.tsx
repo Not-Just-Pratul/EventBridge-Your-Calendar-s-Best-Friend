@@ -30,10 +30,10 @@ const Calendar = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -74,13 +74,13 @@ const Calendar = () => {
         />
         
         <SidebarInset className="flex flex-col overflow-hidden min-w-0 flex-1">
-          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200 flex-shrink-0" />
-            <h1 className="font-bold text-lg sm:text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent truncate">
+          <div className="flex items-center gap-2 p-3 border-b dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <SidebarTrigger className="hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors duration-200 flex-shrink-0 p-2 min-h-[44px]" />
+            <h1 className="font-bold text-base sm:text-lg md:text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent truncate flex-1 min-w-0">
               EventBridge Calendar
             </h1>
-            <div className="ml-auto text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
-              Welcome back, {displayName}
+            <div className="text-xs text-gray-500 dark:text-gray-400 hidden md:block max-w-[150px] truncate">
+              Welcome, {displayName}
             </div>
           </div>
           
@@ -91,7 +91,7 @@ const Calendar = () => {
             onViewChange={setCurrentView}
           />
           
-          <div className="flex-1 overflow-auto p-3 sm:p-6">
+          <div className="flex-1 overflow-auto p-2 sm:p-4 md:p-6">
             <CalendarGrid 
               view={currentView}
               currentDate={currentDate}
@@ -105,10 +105,10 @@ const Calendar = () => {
 
       <Button
         onClick={handleCreateEvent}
-        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-4 border-white dark:border-gray-800"
+        className="fixed bottom-4 right-4 h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 border-4 border-white dark:border-gray-800 active:scale-95"
         size="icon"
       >
-        <Plus className="h-6 w-6 sm:h-8 sm:w-8" />
+        <Plus className="h-6 w-6 sm:h-7 sm:w-7" />
       </Button>
 
       <EventModal
