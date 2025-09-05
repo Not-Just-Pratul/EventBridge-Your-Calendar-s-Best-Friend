@@ -90,8 +90,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- GitHub: [@ScreenSlauth](https://github.com/ScreenSlauth)
+- GitHub: [@not-just-pratul](https://github.com/not-just-pratul)
 
 ---
 
-Made with ❤️ by [ScreenSlauth](https://github.com/ScreenSlauth)
+Made with ❤️ by [Pratul](https://github.com/not-just-pratul)
