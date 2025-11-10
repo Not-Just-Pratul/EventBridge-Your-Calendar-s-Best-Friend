@@ -23,15 +23,15 @@ A TypeScript-based event bridge implementation for building robust event-driven 
 ## 🛠️ Installation
 
 ```bash
-npm install @screenslauth/eventbridge
+npm install @not-just-pratul/eventbridge
 # or
-yarn add @screenslauth/eventbridge
+yarn add @not-just-pratul/eventbridge
 ```
 
 ## 🔧 Usage
 
 ```typescript
-import { EventBridge } from '@screenslauth/eventbridge';
+import { EventBridge } from '@not-just-pratul/eventbridge';
 
 // Initialize the event bridge
 const eventBridge = new EventBridge();
