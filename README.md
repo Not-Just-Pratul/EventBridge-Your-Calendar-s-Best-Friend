@@ -1,7 +1,8 @@
 # EventBridge – Your Calendar’s Best Friend
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-98.8%25-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)(https://github.com/Not-Just-Pratul/EventBridge-Your-Calendar-s-Best-Friend/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Not-Just-Pratul/EventBridge-Your-Calendar-s-Best-Friend/blob/main/LICENSE)
+
 
 A TypeScript-based event bridge implementation for building robust event-driven architectures.
 
