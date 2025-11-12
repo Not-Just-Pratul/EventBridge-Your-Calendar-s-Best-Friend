@@ -1,7 +1,7 @@
 # EventBridge – Your Calendar’s Best Friend
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-98.8%25-blue.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/github/license/ScreenSlauth/EventBridge)](https://github.com/ScreenSlauth/EventBridge/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/not-just-pratul/EventBridge)](https://github.com/not-just-pratul/EventBridge/blob/main/LICENSE)
 
 A TypeScript-based event bridge implementation for building robust event-driven architectures.
 
@@ -56,10 +56,6 @@ eventBridge.publish('user.created', {
 });
 ```
 
-## 📖 Documentation
-
-For detailed documentation, please visit our [Wiki](https://github.com/ScreenSlauth/EventBridge/wiki) or check the `/docs` directory in the repository.
-
 ## 🧪 Running Tests
 
 ```bash
@@ -84,8 +80,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/ScreenSlauth/EventBridge)
-- [Issue Tracker](https://github.com/ScreenSlauth/EventBridge/issues)
+- [GitHub Repository](https://github.com/not-just-pratul/EventBridge)
+- [Issue Tracker](https://github.com/not-just-pratul/EventBridge/issues)
 - [Changelog](CHANGELOG.md)
 
 ## 📧 Contact
