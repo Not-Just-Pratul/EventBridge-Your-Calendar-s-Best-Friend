@@ -81,7 +81,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Links
 
 - [GitHub Repository](https://github.com/Not-Just-Pratul/EventBridge-Your-Calendar-s-Best-Friend)
-- [Issue Tracker](https://github.com/not-just-pratul/EventBridge/issues)
 - [Changelog](CHANGELOG.md)
 
 ## 📧 Contact
