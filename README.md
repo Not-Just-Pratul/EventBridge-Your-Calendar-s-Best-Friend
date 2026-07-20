@@ -1,8 +1,9 @@
 # EventBridge – Your Calendar’s Best Friend
 
+Live Demo: [https://calendar-joy-flow.lovable.app/](https://calendar-joy-flow.lovable.app/)
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-98.8%25-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Not-Just-Pratul/EventBridge-Your-Calendar-s-Best-Friend/blob/main/LICENSE)
-
 
 A TypeScript-based event bridge implementation for building robust event-driven architectures.
 
@@ -81,6 +82,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
+- [Live Demo](https://calendar-joy-flow.lovable.app/)
 - [GitHub Repository](https://github.com/Not-Just-Pratul/EventBridge-Your-Calendar-s-Best-Friend)
 - [Changelog](CHANGELOG.md)
 
